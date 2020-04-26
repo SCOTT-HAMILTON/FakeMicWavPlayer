@@ -94,6 +94,11 @@ Fake is delivered as it is under the well known MIT License
 
 
 **References that helped**
+ - [pulseaudio IRC] : <#pulseaudio>
+ - [pulseaudio under the hood] : <https://gavv.github.io/articles/pulseaudio-under-the-hood/>
+ - [pulseaudio documentation] : <https://freedesktop.org/software/pulseaudio/doxygen/>
+ - [pulseaudio introspect API interface] :
+   <https://freedesktop.org/software/pulseaudio/doxygen/introspect_8h.html>
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
