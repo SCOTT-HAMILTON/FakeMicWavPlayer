@@ -2,10 +2,10 @@
 
 ![powered by Pulseaudio](https://www.freedesktop.org/software/pulseaudio/logo.png)
 
-![Powered by Pulseaudio](icons/powered_by_pulseaudio.png "lol")
+![Powered by Pulseaudio](icons/powered_by_pulseaudio.png)
 
 
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
+![Build Passing](icons/buld-passing.svg)
 
 Fake is a pulseaudio client that can inject wav files like a microphone to any recording app on linux.
 
@@ -19,7 +19,7 @@ Fake is a pulseaudio client that can inject wav files like a microphone to any r
  - Then fake connects the source stream of your application(=source-output in PulseAudio terminolgy) to the source of the virtual sink (the monitor of the virtual sink to be exact). Now everything that is played in the virtual sink enters the recording of your application.
  - Now fake can just play the wav file to the combined sink.
  - To summarize :
-![Summarizeing Schema](icons/schema.png "schema")
+![Summarized Schema](icons/schema.png "schema")
 
 # Usage
 `./FakeMicWavPlayer <WavFile> [pulseaudio sinks]`
