@@ -1,6 +1,6 @@
 #include "player.h"
+#include "help.h"
 
-#include <pthread.h>
 #include <pulse/pulseaudio.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 // User defined control fields
-static const char* sourceProcessBinary 		= "Discord";
+static const char* defaultSourceProcessBinary 	= "Discord";
 static const char* fakeMonitorName	 	= "TestSink.monitor";
 static const char* fakeCombinedMonitorName 	= "TestCombinedSink.monitor";
 static const char* fakeSinkName			= "TestSink";
@@ -23,12 +23,12 @@ typedef struct source_infos {
 	char description[256];
 } source_infos_t;
 
-
 typedef struct source_output_infos {
 	uint8_t initialized;
 	char name[512];
 	uint32_t index;
 	uint32_t source;
+	const char* source_process_binary;
 } source_output_infos_t;
 
 typedef struct module_infos {
@@ -63,14 +63,21 @@ int load_module(load_module_infos_t* load_module_infos);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		fprintf (stderr, "Error, 1 argument needed : the wav file to play");
+		help();
 		return 1;
 	}
 	char combinedSlavesList[1024];
-	if (argc > 2) {
+	char sourceProcessBinary[1024];
+	if (argc > 2 && strcmp(argv[2], "default") != 0) {
 		strcpy(combinedSlavesList, argv[2]);
 	} else {
 		strcpy(combinedSlavesList, defaultCombinedSlavesList);
+	}
+
+	if (argc > 3 && strcmp(argv[3], "default") != 0) {
+		strcpy(sourceProcessBinary, argv[3]);
+	} else {
+		strcpy(sourceProcessBinary, defaultSourceProcessBinary);
 	}
 
 	const char* fileName = argv[1];
@@ -80,7 +87,7 @@ int main(int argc, char *argv[]) {
 	source_infos_t source_infos[16];
 
 	// This is where we'll store the source output's list
-	source_output_infos_t source_output_info;
+	source_output_infos_t source_output_info = {.source_process_binary = sourceProcessBinary};
 
 	// This is where we'll store the modules list 
 	module_infos_t modules[16];
@@ -375,7 +382,7 @@ void state_cb(pa_context *c, void *userdata) {
 // pa_mainloop will call this function when it's ready to tell us about a sink.
 // Since we're not threading, there's no need for mutexes on the devicelist
 // structure
-void source_infos_cb(pa_context *c, const pa_source_info *l, int eol, void *userdata) {
+void source_infos_cb(__attribute__((unused)) pa_context *c, const pa_source_info *l, int eol, void *userdata) {
 	source_infos_t *source_infos = userdata;
 	int ctr = 0;
 
@@ -401,7 +408,7 @@ void source_infos_cb(pa_context *c, const pa_source_info *l, int eol, void *user
 }
 
 // See above.  This callback is pretty much identical to the previous
-void source_output_infos_cb(pa_context *c, const pa_source_output_info *l, int eol, void *userdata) {
+void source_output_infos_cb(__attribute__((unused)) pa_context *c, const pa_source_output_info *l, int eol, void *userdata) {
 	source_output_infos_t *source_output_info = userdata;
 	int ctr = 0;
 
@@ -410,7 +417,7 @@ void source_output_infos_cb(pa_context *c, const pa_source_output_info *l, int e
 	}
 
 	const char* processBinary = pa_proplist_gets(l->proplist, PA_PROP_APPLICATION_PROCESS_BINARY);
-	if (strcmp(processBinary, sourceProcessBinary) == 0 && ! source_output_info->initialized) {
+	if (strcmp(processBinary, source_output_info->source_process_binary) == 0 && ! source_output_info->initialized) {
 		strncpy(source_output_info->name, l->name, 511);
 		source_output_info->source = l->source;
 		source_output_info->index = l->index;
@@ -418,7 +425,7 @@ void source_output_infos_cb(pa_context *c, const pa_source_output_info *l, int e
 	}
 }
 
-void module_infos_cb(pa_context *c, const pa_module_info* l, int eol, void *userdata) {
+void module_infos_cb(__attribute__((unused)) pa_context *c, const pa_module_info* l, int eol, void *userdata) {
 	module_infos_t* module_infos = userdata;
 
 	if (eol > 0) {
@@ -438,7 +445,7 @@ void module_infos_cb(pa_context *c, const pa_module_info* l, int eol, void *user
 
 }
 
-void load_module_cb(pa_context *c, uint32_t index, void *userdata) {
+void load_module_cb(__attribute__((unused)) pa_context *c, uint32_t index, void *userdata) {
 	load_module_infos_t* load_module_infos = userdata;
 	printf ("Module for %s loaded,  index : %d\n", (const char*) load_module_infos->description, index);
 	load_module_infos->success = 1;
@@ -520,7 +527,8 @@ int move_source_output_port(uint32_t sourceIndex, uint32_t portIndex){
 	}
 }
 
-void move_source_output_port_success(pa_context *c, int success, void *userdata){
+void move_source_output_port_success(__attribute__((unused)) pa_context *c, int success, 
+		__attribute__((unused)) void *userdata){
 	printf("Port move request result : %d\n", success);
 }
 
