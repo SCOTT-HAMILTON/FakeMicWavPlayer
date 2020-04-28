@@ -1,6 +1,14 @@
 #ifndef FAKE_LIB_H
 #define FAKE_LIB_H
 
+#if defined(__cplusplus)
+#define _FAKELIB_START_HEADER_DECL extern "C" {
+#define _FAKELIB_END_HEADER_DECL }
+#else
+#define _FAKELIB_START_HEADER_DECL
+#define _FAKELIB_END_HEADER_DECL
+#endif
+
 #include "player.h"
 
 #include <pulse/pulseaudio.h>
@@ -8,6 +16,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+
+_FAKELIB_START_HEADER_DECL
 
 // User defined control fields
 static const char *defaultSourceProcessBinary = "Discord";
@@ -36,6 +46,13 @@ typedef struct source_output_infos {
 	const char *source_process_binary;
 } source_output_infos_t;
 
+typedef struct sink_infos {
+	uint8_t initialized;
+	char name[512];
+	uint32_t index;
+	char description[256];
+} sink_infos_t;
+
 typedef struct module_infos {
 	uint8_t initialized;
 	char name[512];
@@ -60,16 +77,20 @@ void source_infos_cb(pa_context *c, const pa_source_info *l, int eol,
 		     void *userdata);
 void source_output_infos_cb(pa_context *c, const pa_source_output_info *l,
 			    int eol, void *userdata);
+void sink_infos_cb(pa_context *c, const pa_sink_info *l, int eol,
+		   void *userdata);
 void module_infos_cb(pa_context *c, const pa_module_info *l, int eol,
 		     void *userdata);
 void load_module_cb(pa_context *c, uint32_t index, void *userdata);
 void move_source_output_port_success(pa_context *c, int success,
 				     void *userdata);
 
-int get_sources_source_output_and_modules(source_infos_t *sources,
-					  source_output_infos_t *source_outputs,
-					  module_infos_t *module);
+int get_sources_source_output_sinks_and_modules(
+    source_infos_t *sources, source_output_infos_t *source_outputs,
+    sink_infos_t *sinks, module_infos_t *module);
 int move_source_output_port(uint32_t sourceIndex, uint32_t portIndex);
 int load_module(load_module_infos_t *load_module_infos);
 
-#endif //FAKE_LIB_H
+_FAKELIB_END_HEADER_DECL
+
+#endif // FAKE_LIB_H

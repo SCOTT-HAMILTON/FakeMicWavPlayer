@@ -32,12 +32,15 @@ int main(int argc, char *argv[]) {
 	source_output_infos_t source_output_info = {.source_process_binary =
 							sourceProcessBinary};
 
+	// This is where we'll store the sink's list
+	sink_infos_t sinks[16];
+
 	// This is where we'll store the modules list
 	module_infos_t modules[16];
 	int ctr;
 
-	if (get_sources_source_output_and_modules(
-		source_infos, &source_output_info, modules) < 0) {
+	if (get_sources_source_output_sinks_and_modules(
+		source_infos, &source_output_info, sinks, modules) < 0) {
 		fprintf(
 		    stderr,
 		    "Failed to fetch source, source output and module list\n");
@@ -73,6 +76,17 @@ int main(int argc, char *argv[]) {
 			fake_combined_sink.exists = 1;
 			fake_combined_sink.index = source_infos[ctr].index;
 		}
+	}
+
+	for (ctr = 0; ctr < 16; ctr++) {
+		if (!sinks[ctr].initialized) {
+			break;
+		}
+		printf("=======[ Sink #%d ]=======\n", ctr + 1);
+		printf("Description: %s\n", sinks[ctr].description);
+		printf("Name: %s\n", sinks[ctr].name);
+		printf("Index: %d\n", sinks[ctr].index);
+		printf("\n");
 	}
 
 	/* for (ctr = 0; ctr < 16; ctr++) { */
@@ -140,8 +154,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!fake_monitor.exists || !fake_combined_sink.exists) {
-		if (get_sources_source_output_and_modules(source_infos, NULL,
-							  NULL) < 0) {
+		if (get_sources_source_output_sinks_and_modules(
+			source_infos, NULL, NULL, NULL) < 0) {
 			fprintf(stderr, "Failed to fetch source, source output "
 					"and module list\n");
 			return 1;
@@ -195,4 +209,3 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-

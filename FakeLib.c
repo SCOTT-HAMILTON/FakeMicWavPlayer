@@ -5,13 +5,13 @@
 #include <time.h>
 #include <unistd.h>
 
-int get_sources_source_output_and_modules(source_infos_t *sources,
-					  source_output_infos_t *source_outputs,
-					  module_infos_t *modules) {
+int get_sources_source_output_sinks_and_modules(
+    source_infos_t *sources, source_output_infos_t *source_outputs,
+    sink_infos_t *sinks, module_infos_t *modules) {
 	// Define our pulse audio loop and connection variables
 	pa_mainloop *ml;
 	pa_mainloop_api *mlapi;
-	pa_operation *op;
+	pa_operation *op = NULL;
 	pa_context *ctx;
 
 	// We'll need these state variables to keep track of our requests
@@ -21,6 +21,8 @@ int get_sources_source_output_and_modules(source_infos_t *sources,
 	// Initialize our device lists
 	if (sources != NULL)
 		memset(sources, 0, sizeof(source_infos_t) * 16);
+	if (sinks != NULL)
+		memset(sinks, 0, sizeof(sink_infos_t) * 16);
 	if (modules != NULL)
 		memset(modules, 0, sizeof(module_infos_t) * 16);
 
@@ -61,9 +63,9 @@ int get_sources_source_output_and_modules(source_infos_t *sources,
 		// State 0: we haven't done anything yet
 		case 0:
 			// This sends an operation to the server.
-			// pa_sinklist_info is our callback function and a
-			// pointer to our devicelist will be passed to the
-			// callback The operation ID is stored in the op
+			// source_infos_cb is our callback function and a
+			// pointer to our source_info to fill in will be passed
+			// to the callback The operation ID is stored in the op
 			// variable
 			if (sources != NULL) {
 				op = pa_context_get_source_info_list(
@@ -73,51 +75,72 @@ int get_sources_source_output_and_modules(source_infos_t *sources,
 				// loop
 				++state;
 				break;
-			} else
-				++state;
+			}
+			++state;
 		case 1:
-			// Now we wait for our operation to complete.  When it's
-			// complete our pa_source_outputlist is filled out, and
-			// we move along to the next state
 			if (source_outputs != NULL) {
-				if (pa_operation_get_state(op) ==
-				    PA_OPERATION_DONE) {
-					pa_operation_unref(op);
-
-					// Now we perform another operation to
-					// get the source (input device) list
-					// just like before.  This time we pass
-					// a pointer to our input structure
-					op =
-					    pa_context_get_source_output_info_list(
-						ctx, source_output_infos_cb,
-						source_outputs);
-					// Update the state so we know what to
-					// do next
-					++state;
+				if (op != NULL) {
+					if (pa_operation_get_state(op) ==
+					    PA_OPERATION_DONE) {
+						pa_operation_unref(op);
+						op = NULL;
+					} else
+						break;
 				}
-				break;
-			} else
+				// Now we perform another operation to
+				// get the source (input device) list
+				// just like before.  This time we pass
+				// a pointer to our input structure
+				op = pa_context_get_source_output_info_list(
+				    ctx, source_output_infos_cb,
+				    source_outputs);
+				// Update the state so we know what to
+				// do next
 				++state;
+				break;
+			}
+			++state;
 		case 2:
-			if (modules != NULL) {
-				if (pa_operation_get_state(op) ==
-				    PA_OPERATION_DONE) {
-					pa_operation_unref(op);
-					op = pa_context_get_module_info_list(
-					    ctx, module_infos_cb, modules);
-					// Update the state so we know what to
-					// do next
-					++state;
+			// Same but for sinks
+			if (sinks != NULL) {
+				if (op != NULL) {
+					if (pa_operation_get_state(op) ==
+					    PA_OPERATION_DONE) {
+						pa_operation_unref(op);
+						op = NULL;
+					} else
+						break;
 				}
-				break;
-			} else
+				op = pa_context_get_sink_info_list(
+				    ctx, sink_infos_cb, sinks);
 				++state;
+				break;
+			}
+			++state;
 		case 3:
+			// Same but fore modules
+			if (modules != NULL) {
+				if (op != NULL) {
+					if (pa_operation_get_state(op) ==
+					    PA_OPERATION_DONE) {
+						pa_operation_unref(op);
+						op = NULL;
+					} else
+						break;
+				}
+				op = pa_context_get_module_info_list(
+				    ctx, module_infos_cb, modules);
+				++state;
+				break;
+			}
+			++state;
+		case 4:
+			// Clean up time
 			if (pa_operation_get_state(op) == PA_OPERATION_DONE) {
 				// Now we're done, clean up and disconnect and
 				// return
 				pa_operation_unref(op);
+				op = NULL;
 				pa_context_disconnect(ctx);
 				pa_context_unref(ctx);
 				pa_mainloop_free(ml);
@@ -211,6 +234,27 @@ void source_output_infos_cb(__attribute__((unused)) pa_context *c,
 		source_output_info->source = l->source;
 		source_output_info->index = l->index;
 		source_output_info->initialized = 1;
+	}
+}
+
+void sink_infos_cb(__attribute__((unused)) pa_context *c, const pa_sink_info *l,
+		   int eol, void *userdata) {
+	sink_infos_t *sink_info = userdata;
+	int ctr = 0;
+
+	if (eol > 0) {
+		return;
+	}
+
+	for (ctr = 0; ctr < 16; ctr++) {
+		if (!sink_info[ctr].initialized) {
+			strncpy(sink_info[ctr].name, l->name, 511);
+			strncpy(sink_info[ctr].description, l->description,
+				511);
+			sink_info[ctr].index = l->index;
+			sink_info[ctr].initialized = 1;
+			break;
+		}
 	}
 }
 
