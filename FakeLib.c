@@ -21,6 +21,8 @@ int get_sources_source_output_sinks_and_modules(
 	// Initialize our device lists
 	if (sources != NULL)
 		memset(sources, 0, sizeof(source_infos_t) * 16);
+	if (source_outputs != NULL)
+		memset(source_outputs, 0, sizeof(source_output_infos_t) * 16);
 	if (sinks != NULL)
 		memset(sinks, 0, sizeof(sink_infos_t) * 16);
 	if (modules != NULL)
@@ -202,7 +204,7 @@ void source_infos_cb(__attribute__((unused)) pa_context *c,
 	// contents into it and we're done.  If we receive more than 16 devices,
 	// they're going to get dropped.  You could make this dynamically
 	// allocate space for the device list, but this is a simple example.
-	for (ctr = 0; ctr < 16; ctr++) {
+	for (ctr = 0; ctr < 16; ++ctr) {
 		if (!source_infos[ctr].initialized) {
 			strncpy(source_infos[ctr].name, l->name, 511);
 			strncpy(source_infos[ctr].description, l->description,
@@ -219,21 +221,22 @@ void source_output_infos_cb(__attribute__((unused)) pa_context *c,
 			    const pa_source_output_info *l, int eol,
 			    void *userdata) {
 	source_output_infos_t *source_output_info = userdata;
+
 	int ctr = 0;
 
 	if (eol > 0) {
 		return;
 	}
 
-	const char *processBinary =
-	    pa_proplist_gets(l->proplist, PA_PROP_APPLICATION_PROCESS_BINARY);
-	if (strcmp(processBinary, source_output_info->source_process_binary) ==
-		0 &&
-	    !source_output_info->initialized) {
-		strncpy(source_output_info->name, l->name, 511);
-		source_output_info->source = l->source;
-		source_output_info->index = l->index;
-		source_output_info->initialized = 1;
+	for (ctr = 0; ctr < 16; ++ctr) {
+		if(!source_output_info[ctr].initialized) {
+			source_output_info[ctr].initialized = 1;
+			strncpy(source_output_info[ctr].name, l->name, 511);
+			source_output_info[ctr].source = l->source;
+			source_output_info[ctr].index = l->index;
+			strncpy(source_output_info[ctr].source_process_binary, pa_proplist_gets(l->proplist, PA_PROP_APPLICATION_PROCESS_BINARY), 511);
+			break;
+		}
 	}
 }
 
@@ -246,7 +249,7 @@ void sink_infos_cb(__attribute__((unused)) pa_context *c, const pa_sink_info *l,
 		return;
 	}
 
-	for (ctr = 0; ctr < 16; ctr++) {
+	for (ctr = 0; ctr < 16; ++ctr) {
 		if (!sink_info[ctr].initialized) {
 			strncpy(sink_info[ctr].name, l->name, 511);
 			strncpy(sink_info[ctr].description, l->description,
@@ -268,7 +271,7 @@ void module_infos_cb(__attribute__((unused)) pa_context *c,
 
 	int ctr = 0;
 
-	for (ctr = 0; ctr < 16; ctr++) {
+	for (ctr = 0; ctr < 16; ++ctr) {
 		if (!module_infos[ctr].initialized) {
 			strncpy(module_infos[ctr].name, l->name, 511);
 			module_infos[ctr].index = l->index;
@@ -438,5 +441,201 @@ int load_module(load_module_infos_t *load_module_infos) {
 		}
 		pa_mainloop_iterate(ml, 1, NULL);
 	}
+	return 0;
+}
+
+
+int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const char* sourceProcessBinary) {
+	// This is where we'll store the source's list
+	source_infos_t source_infos[16];
+
+	// This is where we'll store the source output's list
+	source_output_infos_t source_output_info[16];// TODO REMOVE = {.source_process_binary =
+	// The source output of the list above that matched the sourceProcessBinary given.
+	source_output_infos_t* found_source_output_info = NULL;
+
+	// This is where we'll store the sink's list
+	sink_infos_t sinks[16];
+
+	// This is where we'll store the modules list
+	module_infos_t modules[16];
+	int ctr;
+
+	if (get_sources_source_output_sinks_and_modules(
+		source_infos, source_output_info, sinks, modules) < 0) {
+		fprintf(
+		    stderr,
+		    "Failed to fetch source, source output and module list\n");
+		return 1;
+	}
+
+
+	for (ctr = 0; ctr < 16; ++ctr) {
+		if (source_output_info[ctr].initialized) {
+			printf("=======[ Source Output info #%d ]=======\n", ctr + 1);
+			printf("Name: %s\n", source_output_info[ctr].name);
+			printf("Source: %d\n", source_output_info[ctr].source);
+			printf("Index: %d\n", source_output_info[ctr].index);
+			printf("Source Process Binary Name: %s\n", source_output_info[ctr].source_process_binary);
+			printf("\n");
+
+			if (strcmp(sourceProcessBinary, source_output_info[ctr].source_process_binary) == 0 ) {
+				found_source_output_info = &source_output_info[ctr];
+			}
+		}
+	}
+
+	// This is where we store the fake sink name data if exists
+	fake_sink_t fake_monitor = {.exists = 0};
+	fake_sink_t fake_combined_sink = {.exists = 0};
+
+	for (ctr = 0; ctr < 16; ++ctr) {
+		if (!source_infos[ctr].initialized) {
+			break;
+		}
+		printf("=======[ Source #%d ]=======\n", ctr + 1);
+		printf("Description: %s\n", source_infos[ctr].description);
+		printf("Name: %s\n", source_infos[ctr].name);
+		printf("Index: %d\n", source_infos[ctr].index);
+		printf("\n");
+		if (strcmp(source_infos[ctr].name, fakeMonitorName) == 0) {
+			fake_monitor.exists = 1;
+			fake_monitor.index = source_infos[ctr].index;
+		}
+		if (strcmp(source_infos[ctr].name, fakeCombinedMonitorName) ==
+		    0) {
+			fake_combined_sink.exists = 1;
+			fake_combined_sink.index = source_infos[ctr].index;
+		}
+	}
+
+	for (ctr = 0; ctr < 16; ++ctr) {
+		if (!sinks[ctr].initialized) {
+			break;
+		}
+		printf("=======[ Sink #%d ]=======\n", ctr + 1);
+		printf("Description: %s\n", sinks[ctr].description);
+		printf("Name: %s\n", sinks[ctr].name);
+		printf("Index: %d\n", sinks[ctr].index);
+		printf("\n");
+	}
+
+	/* for (ctr = 0; ctr < 16; ++ctr) { */
+	/* 	if (! modules[ctr].initialized) { */
+	/* 		break; */
+	/* 	} */
+	/* 	printf("=======[ Modules #%d ]=======\n", ctr+1); */
+	/* 	printf("Name: %s\n", modules[ctr].name); */
+	/* 	printf("Index: %d\n", modules[ctr].index); */
+	/* 	printf("\n"); */
+	/* } */
+
+	if (fake_monitor.exists) {
+		printf("Fake Monitor Index : %d\n", fake_monitor.index);
+	} else {
+		printf("no fake monitor yet\n");
+		load_module_infos_t load_fake_module_infos = {
+		    .success = 0,
+		    .module_name = "module-null-sink",
+		    .description = "the fake sink"};
+		sprintf(load_fake_module_infos.module_args, "sink_name=%s",
+			fakeSinkName);
+		load_module(&load_fake_module_infos);
+		time_t startTime = time(NULL);
+		// Wait up to two seconds for the module to be loaded (should be
+		// instant)
+		while (time(NULL) - startTime < 2 &&
+		       !load_fake_module_infos.success)
+			usleep(250000);
+		if (!load_fake_module_infos.success) {
+			fprintf(stderr,
+				"Error, fake monitor not created, exiting.\n");
+			return 1;
+		}
+		printf("Fake monitor created! retrying source lookup\n");
+	}
+	if (fake_combined_sink.exists) {
+		printf("Fake Combined Sink Index : %d\n",
+		       fake_combined_sink.index);
+	} else {
+		printf("no fake combined sink yet\n");
+		load_module_infos_t load_fake_combined_sink_infos = {
+		    .success = 0,
+		    .module_name = "module-combine-sink",
+		    .description = "the fake combined sink"};
+		fprintf(stderr, "Combined Slaves List : %s\n",
+			combinedSlavesList);
+		sprintf(load_fake_combined_sink_infos.module_args,
+			"sink_name=%s slaves=%s,%s", fakeCombinedSinkName,
+			combinedSlavesList, fakeSinkName);
+		load_module(&load_fake_combined_sink_infos);
+		time_t startTime = time(NULL);
+		// Wait up to two seconds for the module to be loaded (should be
+		// instant)
+		while (time(NULL) - startTime < 2 &&
+		       !load_fake_combined_sink_infos.success)
+			usleep(250000);
+		if (!load_fake_combined_sink_infos.success) {
+			fprintf(stderr,
+				"Error, fake monitor not created, exiting.\n");
+			return 1;
+		}
+		printf(
+		    "Fake combined monitor created! retrying source lookup\n");
+	}
+
+	if (!fake_monitor.exists || !fake_combined_sink.exists) {
+		if (get_sources_source_output_sinks_and_modules(
+			source_infos, NULL, NULL, NULL) < 0) {
+			fprintf(stderr, "Failed to fetch source, source output "
+					"and module list\n");
+			return 1;
+		}
+		for (ctr = 0; ctr < 16; ++ctr) {
+			if (!source_infos[ctr].initialized) {
+				break;
+			}
+			if (strcmp(source_infos[ctr].name, fakeMonitorName) ==
+			    0) {
+				fake_monitor.exists = 1;
+				fake_monitor.index = source_infos[ctr].index;
+			}
+			if (strcmp(source_infos[ctr].name,
+				   fakeCombinedMonitorName) == 0) {
+				fake_combined_sink.exists = 1;
+				fake_combined_sink.index =
+				    source_infos[ctr].index;
+			}
+		}
+		if (!fake_monitor.exists) {
+			fprintf(stderr,
+				"Fake monitor still not found, exiting.\n");
+			return 1;
+		}
+		if (!fake_combined_sink.exists) {
+			fprintf(
+			    stderr,
+			    "Fake combined sink still not found, exiting.\n");
+			return 1;
+		}
+		printf("Fake Monitor Index : %d\n", fake_monitor.index);
+		printf("Fake Combined Sink Index : %d\n",
+		       fake_combined_sink.index);
+	}
+
+	if (found_source_output_info != NULL) {
+		move_source_output_port(found_source_output_info->index,
+					fake_monitor.index);
+	}
+	play_arguments_t sennheiserPlayArgs = {.fileName = fileName,
+					       .device = fakeCombinedSinkName};
+	play(&sennheiserPlayArgs);
+
+	if (found_source_output_info != NULL) {
+		// removing back the source output to its previous source
+		move_source_output_port(found_source_output_info->index,
+					found_source_output_info->source);
+	}
+
 	return 0;
 }

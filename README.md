@@ -9,6 +9,7 @@
 
 Fake is a pulseaudio client that can inject wav files like a microphone to any recording app on linux.
 
+
 # Suckless building 
 
   - Like suckless apps, Fake can be built with just `make`
@@ -22,6 +23,11 @@ Fake is a pulseaudio client that can inject wav files like a microphone to any r
 ![Summarized Schema](icons/schema.png "schema")
 
 # Usage
+## The GUI Way
+If you prefer using a GUI, you can use Control's for Fake GUI frontend. [Control's for Fake link](https://github.com/SCOTT-HAMILTON/ControlsForFake) .
+	
+## The hard way
+
 `./FakeMicWavPlayer <WavFile> [pulseaudio sinks]`
 
   - The wav file is an audio file in PCM_S16_LE (PCM 16 bit integers little-endian)
