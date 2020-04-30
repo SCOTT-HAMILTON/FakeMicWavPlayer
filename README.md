@@ -64,7 +64,8 @@ static const char* sourceProcessBinary          = "Discord";
 ```	
 	application.process.binary = "Discord"
 ```
-	The value that I would take is the app binary in the double-quotes.
+
+The value that I would take is the app binary in the double-quotes.
  - Now that you know which value to use, you can replace the one in `main.c` to yours.
  - Finally you can recompile with `make`
 
