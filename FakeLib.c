@@ -229,12 +229,16 @@ void source_output_infos_cb(__attribute__((unused)) pa_context *c,
 	}
 
 	for (ctr = 0; ctr < 16; ++ctr) {
-		if(!source_output_info[ctr].initialized) {
+		if (!source_output_info[ctr].initialized) {
 			source_output_info[ctr].initialized = 1;
 			strncpy(source_output_info[ctr].name, l->name, 511);
 			source_output_info[ctr].source = l->source;
 			source_output_info[ctr].index = l->index;
-			strncpy(source_output_info[ctr].source_process_binary, pa_proplist_gets(l->proplist, PA_PROP_APPLICATION_PROCESS_BINARY), 511);
+			strncpy(source_output_info[ctr].source_process_binary,
+				pa_proplist_gets(
+				    l->proplist,
+				    PA_PROP_APPLICATION_PROCESS_BINARY),
+				511);
 			break;
 		}
 	}
@@ -284,10 +288,10 @@ void module_infos_cb(__attribute__((unused)) pa_context *c,
 void load_module_cb(__attribute__((unused)) pa_context *c, uint32_t index,
 		    void *userdata) {
 	load_module_infos_t *load_module_infos = userdata;
-	printf("Module for %s loaded,  index : %d\n",
-	       (const char *)load_module_infos->description, index);
+	fprintf(stderr, "Module for %s loaded,  index : %d\n",
+		(const char *)load_module_infos->description, index);
 	load_module_infos->success = 1;
-	printf("setting success");
+	fprintf(stderr, "setting success");
 }
 
 int move_source_output_port(uint32_t sourceIndex, uint32_t portIndex) {
@@ -334,8 +338,8 @@ int move_source_output_port(uint32_t sourceIndex, uint32_t portIndex) {
 			// pointer to our devicelist will be passed to the
 			// callback The operation ID is stored in the op
 			// variable
-			printf("moving source %d to port %d\n", sourceIndex,
-			       portIndex);
+			fprintf(stderr, "moving source %d to port %d\n",
+				sourceIndex, portIndex);
 			op = pa_context_move_source_output_by_index(
 			    ctx, sourceIndex,
 			    // try port lol
@@ -366,7 +370,7 @@ int move_source_output_port(uint32_t sourceIndex, uint32_t portIndex) {
 void move_source_output_port_success(__attribute__((unused)) pa_context *c,
 				     int success,
 				     __attribute__((unused)) void *userdata) {
-	printf("Port move request result : %d\n", success);
+	fprintf(stderr, "Port move request result : %d\n", success);
 }
 
 int load_module(load_module_infos_t *load_module_infos) {
@@ -413,9 +417,9 @@ int load_module(load_module_infos_t *load_module_infos) {
 			// pointer to our devicelist will be passed to the
 			// callback The operation ID is stored in the op
 			// variable
-			printf("Loading module %s for %s\n",
-			       load_module_infos->module_name,
-			       load_module_infos->description);
+			fprintf(stderr, "Loading module %s for %s\n",
+				load_module_infos->module_name,
+				load_module_infos->description);
 			op = pa_context_load_module(
 			    ctx, load_module_infos->module_name,
 			    load_module_infos->module_args, load_module_cb,
@@ -444,15 +448,33 @@ int load_module(load_module_infos_t *load_module_infos) {
 	return 0;
 }
 
+int FakeAndPlayWav(const char *fileName, const char *_combinedSlavesList,
+		   const char *_sourceProcessBinary) {
 
-int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const char* sourceProcessBinary) {
+	// Placing default values
+	char combinedSlavesList[512];
+	char sourceProcessBinary[512];
+	if (strcmp(_combinedSlavesList, "") == 0) {
+		strcpy(combinedSlavesList, defaultCombinedSlavesList);
+	} else {
+		strcpy(combinedSlavesList, _combinedSlavesList);
+	}
+
+	if (strcmp(_sourceProcessBinary, "") == 0) {
+		strcpy(sourceProcessBinary, defaultSourceProcessBinary);
+	} else {
+		strcpy(sourceProcessBinary, _sourceProcessBinary);
+	}
+
 	// This is where we'll store the source's list
 	source_infos_t source_infos[16];
 
 	// This is where we'll store the source output's list
-	source_output_infos_t source_output_info[16];// TODO REMOVE = {.source_process_binary =
-	// The source output of the list above that matched the sourceProcessBinary given.
-	source_output_infos_t* found_source_output_info = NULL;
+	source_output_infos_t
+	    source_output_info[16]; // TODO REMOVE = {.source_process_binary =
+	// The source output of the list above that matched the
+	// sourceProcessBinary given.
+	source_output_infos_t *found_source_output_info = NULL;
 
 	// This is where we'll store the sink's list
 	sink_infos_t sinks[16];
@@ -469,18 +491,26 @@ int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const c
 		return 1;
 	}
 
-
 	for (ctr = 0; ctr < 16; ++ctr) {
 		if (source_output_info[ctr].initialized) {
-			printf("=======[ Source Output info #%d ]=======\n", ctr + 1);
-			printf("Name: %s\n", source_output_info[ctr].name);
-			printf("Source: %d\n", source_output_info[ctr].source);
-			printf("Index: %d\n", source_output_info[ctr].index);
-			printf("Source Process Binary Name: %s\n", source_output_info[ctr].source_process_binary);
-			printf("\n");
+			fprintf(stderr,
+				"=======[ Source Output info #%d ]=======\n",
+				ctr + 1);
+			fprintf(stderr, "Name: %s\n",
+				source_output_info[ctr].name);
+			fprintf(stderr, "Source: %d\n",
+				source_output_info[ctr].source);
+			fprintf(stderr, "Index: %d\n",
+				source_output_info[ctr].index);
+			fprintf(stderr, "Source Process Binary Name: %s\n",
+				source_output_info[ctr].source_process_binary);
+			fprintf(stderr, "\n");
 
-			if (strcmp(sourceProcessBinary, source_output_info[ctr].source_process_binary) == 0 ) {
-				found_source_output_info = &source_output_info[ctr];
+			if (strcmp(sourceProcessBinary,
+				   source_output_info[ctr]
+				       .source_process_binary) == 0) {
+				found_source_output_info =
+				    &source_output_info[ctr];
 			}
 		}
 	}
@@ -493,11 +523,12 @@ int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const c
 		if (!source_infos[ctr].initialized) {
 			break;
 		}
-		printf("=======[ Source #%d ]=======\n", ctr + 1);
-		printf("Description: %s\n", source_infos[ctr].description);
-		printf("Name: %s\n", source_infos[ctr].name);
-		printf("Index: %d\n", source_infos[ctr].index);
-		printf("\n");
+		fprintf(stderr, "=======[ Source #%d ]=======\n", ctr + 1);
+		fprintf(stderr, "Description: %s\n",
+			source_infos[ctr].description);
+		fprintf(stderr, "Name: %s\n", source_infos[ctr].name);
+		fprintf(stderr, "Index: %d\n", source_infos[ctr].index);
+		fprintf(stderr, "\n");
 		if (strcmp(source_infos[ctr].name, fakeMonitorName) == 0) {
 			fake_monitor.exists = 1;
 			fake_monitor.index = source_infos[ctr].index;
@@ -513,27 +544,28 @@ int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const c
 		if (!sinks[ctr].initialized) {
 			break;
 		}
-		printf("=======[ Sink #%d ]=======\n", ctr + 1);
-		printf("Description: %s\n", sinks[ctr].description);
-		printf("Name: %s\n", sinks[ctr].name);
-		printf("Index: %d\n", sinks[ctr].index);
-		printf("\n");
+		fprintf(stderr, "=======[ Sink #%d ]=======\n", ctr + 1);
+		fprintf(stderr, "Description: %s\n", sinks[ctr].description);
+		fprintf(stderr, "Name: %s\n", sinks[ctr].name);
+		fprintf(stderr, "Index: %d\n", sinks[ctr].index);
+		fprintf(stderr, "\n");
 	}
 
 	/* for (ctr = 0; ctr < 16; ++ctr) { */
 	/* 	if (! modules[ctr].initialized) { */
 	/* 		break; */
 	/* 	} */
-	/* 	printf("=======[ Modules #%d ]=======\n", ctr+1); */
-	/* 	printf("Name: %s\n", modules[ctr].name); */
-	/* 	printf("Index: %d\n", modules[ctr].index); */
-	/* 	printf("\n"); */
+	/* 	fprintf(stderr, "=======[ Modules #%d ]=======\n", ctr+1); */
+	/* 	fprintf(stderr, "Name: %s\n", modules[ctr].name); */
+	/* 	fprintf(stderr, "Index: %d\n", modules[ctr].index); */
+	/* 	fprintf(stderr, "\n"); */
 	/* } */
 
 	if (fake_monitor.exists) {
-		printf("Fake Monitor Index : %d\n", fake_monitor.index);
+		fprintf(stderr, "Fake Monitor Index : %d\n",
+			fake_monitor.index);
 	} else {
-		printf("no fake monitor yet\n");
+		fprintf(stderr, "no fake monitor yet\n");
 		load_module_infos_t load_fake_module_infos = {
 		    .success = 0,
 		    .module_name = "module-null-sink",
@@ -552,13 +584,14 @@ int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const c
 				"Error, fake monitor not created, exiting.\n");
 			return 1;
 		}
-		printf("Fake monitor created! retrying source lookup\n");
+		fprintf(stderr,
+			"Fake monitor created! retrying source lookup\n");
 	}
 	if (fake_combined_sink.exists) {
-		printf("Fake Combined Sink Index : %d\n",
-		       fake_combined_sink.index);
+		fprintf(stderr, "Fake Combined Sink Index : %d\n",
+			fake_combined_sink.index);
 	} else {
-		printf("no fake combined sink yet\n");
+		fprintf(stderr, "no fake combined sink yet\n");
 		load_module_infos_t load_fake_combined_sink_infos = {
 		    .success = 0,
 		    .module_name = "module-combine-sink",
@@ -580,7 +613,8 @@ int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const c
 				"Error, fake monitor not created, exiting.\n");
 			return 1;
 		}
-		printf(
+		fprintf(
+		    stderr,
 		    "Fake combined monitor created! retrying source lookup\n");
 	}
 
@@ -618,14 +652,20 @@ int FakeAndPlayWav(const char* fileName, const char* combinedSlavesList, const c
 			    "Fake combined sink still not found, exiting.\n");
 			return 1;
 		}
-		printf("Fake Monitor Index : %d\n", fake_monitor.index);
-		printf("Fake Combined Sink Index : %d\n",
-		       fake_combined_sink.index);
+		fprintf(stderr, "Fake Monitor Index : %d\n",
+			fake_monitor.index);
+		fprintf(stderr, "Fake Combined Sink Index : %d\n",
+			fake_combined_sink.index);
 	}
 
 	if (found_source_output_info != NULL) {
+		fprintf(stderr, "source_output index of  %s is %d\n",
+			sourceProcessBinary, found_source_output_info->index);
 		move_source_output_port(found_source_output_info->index,
 					fake_monitor.index);
+	} else {
+		fprintf(stderr, "source_output index not found for %s\n",
+			sourceProcessBinary);
 	}
 	play_arguments_t sennheiserPlayArgs = {.fileName = fileName,
 					       .device = fakeCombinedSinkName};

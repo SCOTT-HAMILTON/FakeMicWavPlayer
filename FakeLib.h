@@ -91,9 +91,10 @@ int get_sources_source_output_sinks_and_modules(
 int move_source_output_port(uint32_t sourceIndex, uint32_t portIndex);
 int load_module(load_module_infos_t *load_module_infos);
 
-// The big wrapper that uses all above functions to play the wav in the 
+// The big wrapper that uses all above functions to play the wav in the
 // recording application and in the other sinks if configured.
-int FakeAndPlayWav(const char* fileName, const char* sinks, const char* processBinaryName);
+int FakeAndPlayWav(const char *fileName, const char *sinks,
+		   const char *processBinaryName);
 
 _FAKELIB_END_HEADER_DECL
 
