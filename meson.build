@@ -19,4 +19,9 @@ executable('FakeMicWavPlayer', 'main.c',
   dependencies : [ lib_dep ],
   install : true)
 
+install_headers('include/FakeLib.h', 'include/player.h')
+
+install_data('pkg-config/fake.pc',
+  install_dir: get_option('libdir')+'/pkgconfig')
+
 
