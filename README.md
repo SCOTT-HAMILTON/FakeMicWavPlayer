@@ -71,71 +71,9 @@ The value that I would take is the app binary in the double-quotes.
 
 ### Requirements
 
-Fake requires libpulse : 
-On debian : 
-```sh
-# apt install libpulse-dev -y
-```
-
-On openSuse : 
-```sh
-# zypper in libpulse-devel
-```
-
-On fedora
-
-```sh
-# dnf install pulseaudio-libs
-```
-
-On centos
-
-```sh
-# yum install pulseaudio-libs
-```
-
-On mageia
-
-```sh
-# dnf install libpulseaudio-devel
-```
-
-On openMandriva
-
-```sh
-# urpmi lib64pulseaudio
-```
-
-On clearlinux
-
-```sh
-# swupd bundle-add devpkg-pulseaudio
-```
-
-On archlinux
-
-```sh
-# pacman -S libpulse
-```
-
-On alpinelinux
-
-```sh
-# apk add libpulse
-```
-
-On void linux
-
-```sh
-# xbps-install -S libpulseaudio
-```
-
-On gentoo
-
-```sh
-# emerge media-sound/pulseaudio
-```
-
+Fake requires : 
+ - libpulse  libpulse-simple: 
+ - [FakeLib](https://github.com/SCOTT-HAMILTON/FakeLib)
 
 
 ### Help
