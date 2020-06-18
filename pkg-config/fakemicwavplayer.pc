@@ -1,10 +1,10 @@
-prefix=@FakeLibPrefix@
+prefix=@Prefix@
 exec_prefix=${prefix}
 includedir=${prefix}/include
 libdir=${exec_prefix}/lib
 
-Name: fake
+Name: fakemicwavplayer
 Description: The FakeMicWavPlayer library
 Version: 0.0.1
 Cflags: -I${includedir}
-Libs: -L${libdir} -lFake
+Libs: -L${libdir} -lFakeMicWavPlayer
