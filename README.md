@@ -74,6 +74,7 @@ The value that I would take is the app binary in the double-quotes.
 Fake requires : 
  - libpulse  libpulse-simple: 
  - [FakeLib](https://github.com/SCOTT-HAMILTON/FakeLib)
+ - [argpase](https://github.com/p-ranav/argparse)
 
 
 ### Help

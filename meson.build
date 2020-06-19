@@ -3,6 +3,7 @@ project('FakeMicWavPlayer', 'cpp', default_options : ['cpp_std=c++17'])
 fake_lib_dep = dependency('fake', required: true)
 libpulse = dependency('libpulse')
 libpulse_simple = dependency('libpulse-simple')
+argparse = dependency('argparse')
 
 lib_inc = include_directories('include')
 lib_src = [ 'FakeMicWavPlayerLib.cpp', 'player.cpp' ]
@@ -19,6 +20,6 @@ lib_dep = declare_dependency(
 install_headers('include/FakeMicWavPlayerLib.h', 'include/player.h')
 
 executable('FakeMicWavPlayer', 'main.cpp', 'FakeMicWavPlayerLib.cpp',
-  dependencies : [ lib_dep ],
+  dependencies : [ lib_dep, argparse ],
   install : true)
 
