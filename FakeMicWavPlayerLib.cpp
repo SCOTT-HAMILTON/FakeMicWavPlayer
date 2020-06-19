@@ -41,27 +41,6 @@ FakeLib FakeLibSingleton::fakeLib;
 void clean() {
 	using namespace FakeLibUtils;
 	FakeLib& fakeLib = FakeLibSingleton::fakeLib;
-	// Looping until all fakeMonitor are deleted (up to 10 times max)
-	for (int i = 0; i < 10; ++i) {
-		auto result = fakeLib
-				.clear_commands()
-				.get_module_list()
-				.run_commands();
-		auto module_list = extract<info_list<module_infos_t>>(result);
-		module_infos_t fakeMonitorModule;
-		try {
-			fakeMonitorModule = find_module(module_list, "module-null-sink");
-		} catch (ObjectNotFoundError) {
-			// Good, there is no more "module-null-sink" modules loaded
-			break;
-		}
-		std::cerr << "Deleting\n";
-		// deleting the module
-		fakeLib
-			.clear_commands()
-			.unload_module(fakeMonitorModule.index)
-			.run_commands();
-	}
 	// Looping until all fakeCombinedMonitor are deleted (up to 10 times max)
 	for (int i = 0; i < 10; ++i) {
 		auto result = fakeLib
@@ -93,10 +72,10 @@ int FakeAndPlayWav(const std::string& fileName,
 {
 	using namespace FakeLibUtils;
 	// Placing default values
-	if (combinedSlavesList == "")
+	if (combinedSlavesList == "default")
 		combinedSlavesList = defaultCombinedSlavesList;
 
-	if (sourceProcessBinary == "")
+	if (sourceProcessBinary == "default")
 		sourceProcessBinary = defaultSourceProcessBinary;
 
 	sourceProcessBinary = ".Discord-wrapped";
@@ -131,38 +110,13 @@ int FakeAndPlayWav(const std::string& fileName,
 		return 1;
 	}
 
-	// Checking if the fakeMonitor already exists
-	source_infos_t fakeMonitor;
-	try {
-		fakeMonitor = find_source(source_list, fakeMonitorName);
-	} catch (ObjectNotFoundError&){
-		// Fake Monitor doesn't yet exist, we need to create it
-		std::cerr << "Creating fakeMonitor...\n";
-		fakeLib.clear_commands();
-		auto result = fakeLib
-			.load_module("module-null-sink", "sink_name=fakesink", "The fake sink module")
-			.run_commands();
-
-		// Checking if the module successfully loaded and thus the fakeMonitor is available
-		result = fakeLib
-			.clear_commands()
-			.get_source_list()
-			.run_commands();
-		auto source_list = extract<info_list<source_infos_t>>(result);
-		try {
-			fakeMonitor = find_source(source_list, fakeMonitorName);
-		} catch (ObjectNotFoundError&) {
-			std::cerr << "Failed to create a fake sink, exiting\n";
-			clean();
-			return 1;
-		}
-	}
 	source_infos_t fakeCombinedMonitor;
 	try {
 		fakeCombinedMonitor = find_source(source_list, fakeCombinedMonitorName);
 	} catch (ObjectNotFoundError&){
 		// Fake Combined Monitor doesn't yet exist, we need to create it
 		std::cerr << "Creating fakeCombinedMonitor...\n";
+		std::cerr << "Args for fake Combined sink : " << combinedSlavesList << '\n';
 		fakeLib.clear_commands();
 		auto result = fakeLib
 			.load_module("module-combine-sink", std::string("sink_name=fakecombinedsink slaves=")+combinedSlavesList, "The fake combined sink module")
@@ -174,6 +128,7 @@ int FakeAndPlayWav(const std::string& fileName,
 			.get_source_list()
 			.run_commands();
 		auto source_list = extract<info_list<source_infos_t>>(result);
+		print_source_list(source_list);
 		try {
 			fakeCombinedMonitor = find_source(source_list, fakeCombinedMonitorName);
 		} catch (ObjectNotFoundError&) {
@@ -183,7 +138,6 @@ int FakeAndPlayWav(const std::string& fileName,
 		}
 	}
 
-	std::cerr << "Fake Monitor Index : " << fakeMonitor.index << '\n';
 	std::cerr << "Fake Combined Monitor Index : " << fakeCombinedMonitor.index << '\n';
 
 	// At this point the fake monitors are setup
