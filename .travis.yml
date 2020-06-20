@@ -4,20 +4,31 @@ group: travis_latest
 os: linux
 language: python
 
+addons:
+  apt:
+    sources:
+    - llvm-toolchain-xenial-8
+    - ubuntu-toolchain-r-test
+    packages:
+    - clang-9
+    - cmake
+    - gcc-9
+    - g++-9
+    - ninja-build
+
 matrix:
   include:
-    - env: CXX=g++-8
+    - env: CXX=clang++-9
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install libpulse-dev python3-pip python3-setuptools cmake g++-8 clang-9 libstdc++6
+  - sudo apt-get install libpulse-dev python3-pip python3-setuptools
 
 install:
-  - sudo python3 -m pip install meson ninja
+  - sudo python3 -m pip install meson
   - git clone https://github.com/SCOTT-HAMILTON/FakeLib
   - cd FakeLib
   - mkdir build
-  - g++-8 --version
   - clang++-9 --version
   - meson build
   - ninja -C build
