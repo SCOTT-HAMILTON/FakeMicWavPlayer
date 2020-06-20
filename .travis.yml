@@ -18,8 +18,7 @@ addons:
 
 matrix:
   include:
-    - env: CXX=clang++-10 CXXFLAGS="-stdlib=libc++"
-
+    - env: CXX=clang++-10
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install libpulse-dev python3-pip python3-setuptools
