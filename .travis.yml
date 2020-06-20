@@ -6,7 +6,7 @@ language: python
 
 matrix:
   include:
-    - env: CXX=g++
+    - env: CXX=g++-9
 
 before_install:
   - sudo apt-get -qq update
@@ -17,8 +17,8 @@ install:
   - git clone https://github.com/SCOTT-HAMILTON/FakeLib
   - cd FakeLib
   - mkdir build
-  - g++ --version
-  - clang --version
+  - g++-9 --version
+  - clang++-9 --version
   - meson build
   - ninja -C build
   - sudo ninja -C build install
