@@ -23,6 +23,10 @@ install:
   - ninja -C build
   - sudo ninja -C build install
   - cd ..
+  - git clone https://github.com/p-ranav/argparse
+  - cd argparse
+  - ./tools/build.sh
+  - cd ..
 
 script:
   - mkdir build
