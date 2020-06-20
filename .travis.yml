@@ -7,20 +7,18 @@ language: python
 addons:
   apt:
     sources:
-    - llvm-toolchain-xenial-8
+    - llvm-toolchain-bionic-10
     - ubuntu-toolchain-r-test
     packages:
-    - clang-9
+    - clang-10
     - cmake
-    - gcc-9
-    - g++-9
-    - libc++-dev
+    - libc++-10-dev
     - ninja-build
     update: true
 
 matrix:
   include:
-    - env: CXX=clang++-9 CXXFLAGS="-stdlib=libc++"
+    - env: CXX=clang++-10 CXXFLAGS="-stdlib=libc++"
 
 before_install:
   - sudo apt-get -qq update
@@ -31,7 +29,7 @@ install:
   - git clone https://github.com/SCOTT-HAMILTON/FakeLib
   - cd FakeLib
   - mkdir build
-  - clang++-9 --version
+  - clang++-10 --version
   - meson build
   - ninja -C build
   - sudo ninja -C build install
@@ -40,7 +38,7 @@ install:
   - cd argparse
   - mkdir build
   - cd build
-  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=ON -DCMAKE_CXX_COMPILER=g++ ..
+  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=ON ..
   - cd ..
   - ninja -C build
   - sudo ninja -C build install
