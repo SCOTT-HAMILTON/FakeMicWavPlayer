@@ -10,7 +10,7 @@ matrix:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install libpulse-dev python3-pip python3-setuptools cmake clang-9
+  - sudo apt-get install libpulse-dev python3-pip python3-setuptools cmake clang-9 libstdc++6
 
 install:
   - sudo python3 -m pip install meson ninja
