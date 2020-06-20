@@ -13,13 +13,13 @@ before_install:
   - sudo apt-get install libpulse-dev
 
 install:
-  - pip install meson ninja
+  - sudo pip install meson ninja
   - git clone https://github.com/SCOTT-HAMILTON/FakeLib
   - cd FakeLib
   - mkdir build
   - meson build
   - ninja -C build
-  - ninja -C build install
+  - sudo ninja -C build install
 
 script:
   - mkdir build
