@@ -15,6 +15,7 @@ addons:
     - gcc-9
     - g++-9
     - ninja-build
+    update: true
 
 matrix:
   include:
