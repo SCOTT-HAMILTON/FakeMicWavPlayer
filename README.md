@@ -5,7 +5,7 @@
 ![Powered by Pulseaudio](icons/powered_by_pulseaudio.png)
 
 
-![Build Passing](icons/buld-passing.svg)
+![Travis CI build status](https://travis-ci.org/SCOTT-HAMILTON/FakeMicWavPlayer.svg?branch=master)
 
 Fake is a pulseaudio client that can inject wav files like a microphone to any recording app on linux.
 
