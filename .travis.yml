@@ -6,18 +6,18 @@ language: python
 
 matrix:
   include:
-    - env: CXX=g++-9
+    - env: CXX=g++-8
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install libpulse-dev python3-pip python3-setuptools cmake g++-9 clang-9 libstdc++6
+  - sudo apt-get install libpulse-dev python3-pip python3-setuptools cmake g++-8 clang-9 libstdc++6
 
 install:
   - sudo python3 -m pip install meson ninja
   - git clone https://github.com/SCOTT-HAMILTON/FakeLib
   - cd FakeLib
   - mkdir build
-  - g++-9 --version
+  - g++-8 --version
   - clang++-9 --version
   - meson build
   - ninja -C build
