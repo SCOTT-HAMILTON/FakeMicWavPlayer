@@ -11,6 +11,7 @@ matrix:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install libpulse-dev
+  - sudo apt-get install python3-pip
 
 install:
   - sudo python3 -m pip install meson ninja
