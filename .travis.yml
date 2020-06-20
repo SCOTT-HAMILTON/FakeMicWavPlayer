@@ -1,0 +1,28 @@
+dist: bionic
+group: travis_latest
+
+os: linux
+language: python
+
+matrix:
+  include:
+    - env: CXX=clang++
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install libpulse-dev
+
+install:
+  - pip install meson ninja
+  - git clone https://github.com/SCOTT-HAMILTON/FakeLib
+  - cd FakeLib
+  - mkdir build
+  - meson build
+  - ninja -C build
+  - sudo ninja -C build install
+
+script:
+  - mkdir build
+  - meson build
+  - ninja -C build
+
