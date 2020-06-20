@@ -24,7 +24,9 @@ install:
   - git clone https://github.com/p-ranav/argparse
   - cd argparse
   - mkdir build
-  - cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=ON
+  - cd build
+  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=ON ..
+  - cd ..
   - ninja -C build
   - sudo ninja -C build install
   - cd ..
