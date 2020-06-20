@@ -14,13 +14,13 @@ addons:
     - cmake
     - gcc-9
     - g++-9
-    - libstdc++-6-dev
+    - libc++-dev
     - ninja-build
     update: true
 
 matrix:
   include:
-    - env: CXX=clang++-9
+    - env: CXX=clang++-9 CXXFLAGS="-stdlib=libc++"
 
 before_install:
   - sudo apt-get -qq update
