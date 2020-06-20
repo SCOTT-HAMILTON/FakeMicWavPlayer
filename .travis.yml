@@ -10,9 +10,7 @@ matrix:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install libpulse-dev
-  - sudo apt-get install python3-pip
-  - sudo apt-get install python3-setuptools
+  - sudo apt-get install libpulse-dev python3-pip python3-setuptools cmake
 
 install:
   - sudo python3 -m pip install meson ninja
@@ -25,7 +23,9 @@ install:
   - cd ..
   - git clone https://github.com/p-ranav/argparse
   - cd argparse
-  - ./tools/build.sh
+  - cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DARGPARSE_BUILD_TESTS=ON
+  - ninja -C build
+  - sudo ninja -C build install
   - cd ..
 
 script:
