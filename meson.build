@@ -1,25 +1,28 @@
 project('FakeMicWavPlayer', 'cpp', default_options : ['cpp_std=c++17'])
 
-fake_lib_dep = dependency('fake', required: true)
+libfake = dependency('fake', required: true)
 libpulse = dependency('libpulse')
 libpulse_simple = dependency('libpulse-simple')
 argparse = dependency('argparse')
 
+OggPlayer_proj = subproject('OggPlayer')
+libOggPlayer_dep = OggPlayer_proj.get_variable('libOggPlayer_dep')
+
 lib_inc = include_directories('include')
-lib_src = [ 'FakeMicWavPlayerLib.cpp', 'player.cpp' ]
-lib = static_library('FakeMicWavPlayer', lib_src, 
+lib_src = [ 'FakeMicWavPlayerLib.cpp' ]
+
+libFakeMicWavPlayer = static_library('FakeMicWavPlayer', lib_src, 
   include_directories : lib_inc,
-  dependencies : [ libpulse, libpulse_simple, fake_lib_dep ], 
+  dependencies : [ libpulse, libpulse_simple, libfake, libOggPlayer_dep ], 
   install : true)
 
-
-lib_dep = declare_dependency(
-  link_with: lib,
+libFakeMicWavPlayer_dep = declare_dependency(
+  link_with: libFakeMicWavPlayer,
   include_directories: lib_inc)
 
-install_headers('include/FakeMicWavPlayerLib.h', 'include/player.h')
+install_headers('include/FakeMicWavPlayerLib.h' )
 
 executable('FakeMicWavPlayer', 'main.cpp', 'FakeMicWavPlayerLib.cpp',
-  dependencies : [ lib_dep, argparse ],
+  dependencies : [ libFakeMicWavPlayer_dep, libOggPlayer_dep, argparse ],
   install : true)
 

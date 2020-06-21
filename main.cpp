@@ -1,5 +1,4 @@
 #include "FakeMicWavPlayerLib.h"
-#include "help.h"
 
 #include <argparse/argparse.hpp>
 

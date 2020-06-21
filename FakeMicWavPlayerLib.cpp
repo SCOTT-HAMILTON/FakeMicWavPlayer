@@ -3,7 +3,7 @@
 #include "CallBacks.h"
 #include "FakeLibImplementation.h"
 #include "FakeLibUtils.hpp"
-#include "player.h"
+#include "OggPlayer.h"
 
 #include <exception>
 
@@ -13,8 +13,6 @@ auto find_sink(const info_list<sink_infos_t>& list,
 		if (info.name == name)
 			return info;
 	}
-
-	std::cerr << "Unknown Sink " << name << '\n';
 	throw ObjectNotFoundError();
 }
 auto find_source(const info_list<source_infos_t>& list,
@@ -186,9 +184,12 @@ int FakeAndPlayWav(const std::string& fileName,
 	std::cerr << "Successfully moved the source output of " << sourceProcessBinary << " to fake combined sink\n";
 
 	// Now we need to play
-	play_arguments_t playerArgs = {.fileName = fileName.c_str(),
-					       .device = fakeCombinedSinkName};
-	play(&playerArgs);
+	std::cerr << "Initializing...\n";
+	if  (OggPlayer::init(fileName, fakeCombinedSinkName) != 0)
+		return 1;
+	std::cerr << "Initialized. Playing\n";
+	if  (OggPlayer::play() != 0)
+		return 1;
 
 	// Clean Up Time
 	clean();
