@@ -12,8 +12,8 @@ addons:
     packages:
     - clang-10
     - cmake
-    - libc++-10-dev
     - ninja-build
+    - libstdc++-8
     update: true
 
 matrix:
@@ -28,7 +28,6 @@ install:
   - git clone https://github.com/SCOTT-HAMILTON/FakeLib
   - cd FakeLib
   - mkdir build
-  - clang++-10 --version
   - meson build
   - ninja -C build
   - sudo ninja -C build install

@@ -7,6 +7,16 @@
 
 #include <exception>
 
+auto find_sink(const info_list<sink_infos_t>& list,
+			const std::string& name) {
+	for (auto info : list) {
+		if (info.name == name)
+			return info;
+	}
+
+	std::cerr << "Unknown Sink " << name << '\n';
+	throw ObjectNotFoundError();
+}
 auto find_source(const info_list<source_infos_t>& list,
 			const std::string& name) {
 	for (auto info : list) {
@@ -141,6 +151,19 @@ int FakeAndPlayWav(const std::string& fileName,
 	std::cerr << "Fake Combined Monitor Index : " << fakeCombinedMonitor.index << '\n';
 
 	// At this point the fake monitors are setup
+	
+	// Setting the fake Combined Sink volume to 100%
+	result = fakeLib
+				.clear_commands()
+				.get_sink_list()
+				.run_commands();
+	sink_list = extract<info_list<sink_infos_t>>(result);
+	auto fakeCombinedSink = find_sink(sink_list, "fakecombinedsink");
+
+	fakeLib
+		.clear_commands()
+		.set_sink_volume(fakeCombinedSink.index, 90.0)
+		.run_commands();
 	
 	// Move the found source output port to the fake combined monitor
 	result = fakeLib
