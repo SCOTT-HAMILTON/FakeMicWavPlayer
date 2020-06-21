@@ -13,7 +13,7 @@ addons:
     - clang-10
     - cmake
     - ninja-build
-    - libstdc++-8
+    - libstdc++-8-dev
     update: true
 
 matrix:
