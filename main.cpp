@@ -21,7 +21,7 @@ void sig_handler(int signo)
 	else if (signo == SIGSTOP)
 		std::cerr << "received SIGSTOP\n";
 
-	clean();
+	FakeMicWavPlayer::clean();
 	exit(1);
 }
 
@@ -67,6 +67,12 @@ int main(int argc, char *argv[]) {
 	std::string sourceProcessBinary = program.get<std::string>("process binary");
 	std::string combinedSlavesList = program.get<const char*>("-s");
 
-	return FakeAndPlayWav(wav_file.c_str(), combinedSlavesList,
-			sourceProcessBinary);
+	if (FakeMicWavPlayer::init(wav_file.c_str(), combinedSlavesList,
+			sourceProcessBinary) != 0)
+		return 1;
+
+	if (FakeMicWavPlayer::set_volume(90.0) != 0)
+		return 1;
+	
+	return FakeMicWavPlayer::play();
 }

@@ -40,7 +40,7 @@ Optional arguments:
 -s --sink-list  The comma-sepatated list of sinks to play the wav file to.
 ```
 
-  - The wav file is an audio file in PCM_S16_LE (PCM 16 bit integers little-endian)
+  - The ogg file is an audio file in ogg vorbis format
   - The process binary is the binary-filename of your recording app. In the case of discord, on most linux distributions you will set it to `Discord` (some exceptions exist like in NixOS where the binary wrapping changes the binary name, you would set it to `.Discord-wrapped`)
   - The optional pulseaudio sinks is a comma separated list of pulseaudio sinks that you want Fake to play in alongside with the virtual sink. This option should be used if you want to hear the wav file played. To know which values you can put, plug the device you want to listen on (if it's not an internal device) and run `pactl list short sinks`. The second column of the table contains the names of all your devices. You just have to copy them. Here is an example : 
   
@@ -60,8 +60,9 @@ Optional arguments:
 
 Fake requires : 
  - libpulse  libpulse-simple: 
+ - libvorbis libogg
  - [FakeLib](https://github.com/SCOTT-HAMILTON/FakeLib)
- - [argpase](https://github.com/p-ranav/argparse)
+ - [argparse](https://github.com/p-ranav/argparse)
 
 
 ### Help

@@ -5,8 +5,6 @@
 #include "FakeLibUtils.hpp"
 #include "OggPlayer.h"
 
-#include <exception>
-
 auto find_sink(const info_list<sink_infos_t>& list,
 			const std::string& name) {
 	for (auto info : list) {
@@ -32,23 +30,26 @@ auto find_source_output(const info_list<source_output_infos_t>& list,
 	}
 	throw ObjectNotFoundError();
 }
-auto find_module(const info_list<module_infos_t>& list,
-			const std::string& name) {
+
+template <typename user_type>
+auto find_by_name(const info_list<user_type>& list,
+				  const std::string& name)
+{
 	for (auto info : list) {
 		if (info.name == name)
 			return info;
 	}
 	throw ObjectNotFoundError();
 }
+auto find_module(const info_list<module_infos_t>& list,
+			const std::string& name) {
+}
 
-struct FakeLibSingleton {
-	static FakeLib fakeLib;
-};
-FakeLib FakeLibSingleton::fakeLib;
+FakeLib FakeMicWavPlayer::fakeLib;
+sink_infos_t FakeMicWavPlayer::fakeCombinedSink;
 
-void clean() {
+void FakeMicWavPlayer::clean() {
 	using namespace FakeLibUtils;
-	FakeLib& fakeLib = FakeLibSingleton::fakeLib;
 	// Looping until all fakeCombinedMonitor are deleted (up to 10 times max)
 	for (int i = 0; i < 10; ++i) {
 		auto result = fakeLib
@@ -74,7 +75,7 @@ void clean() {
 
 }
 
-int FakeAndPlayWav(const std::string& fileName,
+int FakeMicWavPlayer::init(const std::string& fileName,
 		   std::string combinedSlavesList,
 		   std::string sourceProcessBinary)
 {
@@ -88,7 +89,6 @@ int FakeAndPlayWav(const std::string& fileName,
 
 	sourceProcessBinary = ".Discord-wrapped";
 
-	FakeLib& fakeLib = FakeLibSingleton::fakeLib;
 	auto result = fakeLib
 			     .get_module_list()
 			     .get_sink_list()
@@ -101,10 +101,6 @@ int FakeAndPlayWav(const std::string& fileName,
 	auto source_list = extract<info_list<source_infos_t>>(result);
 	auto source_output_list = extract<info_list<source_output_infos_t>>(result);
 	fakeLib.clear_commands();
-	/* print_module_list(module_list); */
-	/* print_sink_list(sink_list); */
-	/* print_source_list(source_list); */
-	/* print_source_output_list(source_output_list); */
 
 	std::cerr << "source process binary : " << sourceProcessBinary << '\n';
 
@@ -156,7 +152,7 @@ int FakeAndPlayWav(const std::string& fileName,
 				.get_sink_list()
 				.run_commands();
 	sink_list = extract<info_list<sink_infos_t>>(result);
-	auto fakeCombinedSink = find_sink(sink_list, "fakecombinedsink");
+	fakeCombinedSink = find_sink(sink_list, "fakecombinedsink");
 
 	fakeLib
 		.clear_commands()
@@ -188,6 +184,11 @@ int FakeAndPlayWav(const std::string& fileName,
 	if  (OggPlayer::init(fileName, fakeCombinedSinkName) != 0)
 		return 1;
 	std::cerr << "Initialized. Playing\n";
+
+	return 0;
+}
+
+int FakeMicWavPlayer::play() {
 	if  (OggPlayer::play() != 0)
 		return 1;
 
@@ -196,3 +197,20 @@ int FakeAndPlayWav(const std::string& fileName,
 
 	return 0;
 }
+int FakeMicWavPlayer::set_volume(double volume) {
+	if (volume < 0.0)
+		throw NegativeVolumeError();
+	if (volume > 100.0)
+		throw TooHighVolumeError();
+
+	fakeLib
+		.clear_commands()
+		.set_sink_volume(fakeCombinedSink.index, volume)
+		.run_commands();
+	// Clean Up Time
+	clean();
+
+	return 0;
+}
+
+
