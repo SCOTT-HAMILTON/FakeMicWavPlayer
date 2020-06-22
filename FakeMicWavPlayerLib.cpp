@@ -5,22 +5,6 @@
 #include "FakeLibUtils.hpp"
 #include "OggPlayer.h"
 
-auto find_sink(const info_list<sink_infos_t>& list,
-			const std::string& name) {
-	for (auto info : list) {
-		if (info.name == name)
-			return info;
-	}
-	throw ObjectNotFoundError();
-}
-auto find_source(const info_list<source_infos_t>& list,
-			const std::string& name) {
-	for (auto info : list) {
-		if (info.name == name)
-			return info;
-	}
-	throw ObjectNotFoundError();
-}
 // Finds a source output in a source output list by its source binary name
 auto find_source_output(const info_list<source_output_infos_t>& list,
 			const std::string& sourceBinaryName) {
@@ -41,8 +25,15 @@ auto find_by_name(const info_list<user_type>& list,
 	}
 	throw ObjectNotFoundError();
 }
-auto find_module(const info_list<module_infos_t>& list,
-			const std::string& name) {
+template <typename user_type>
+auto find_by_index(const info_list<user_type>& list,
+				   uint32_t index)
+{
+	for (auto info : list) {
+		if (info.index == index)
+			return info;
+	}
+	throw ObjectNotFoundError();
 }
 
 FakeLib FakeMicWavPlayer::fakeLib;
@@ -59,7 +50,7 @@ void FakeMicWavPlayer::clean() {
 		auto module_list = extract<info_list<module_infos_t>>(result);
 		module_infos_t fakeCombinedMonitorModule;
 		try {
-			fakeCombinedMonitorModule = find_module(module_list, "module-combine-sink");
+			fakeCombinedMonitorModule = find_by_name(module_list, "module-combine-sink");
 		} catch (ObjectNotFoundError) {
 			// Good, there is no more "module-null-sink" modules loaded
 			break;
@@ -116,7 +107,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 
 	source_infos_t fakeCombinedMonitor;
 	try {
-		fakeCombinedMonitor = find_source(source_list, fakeCombinedMonitorName);
+		fakeCombinedMonitor = find_by_name(source_list, fakeCombinedMonitorName);
 	} catch (ObjectNotFoundError&){
 		// Fake Combined Monitor doesn't yet exist, we need to create it
 		std::cerr << "Creating fakeCombinedMonitor...\n";
@@ -134,7 +125,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		auto source_list = extract<info_list<source_infos_t>>(result);
 		print_source_list(source_list);
 		try {
-			fakeCombinedMonitor = find_source(source_list, fakeCombinedMonitorName);
+			fakeCombinedMonitor = find_by_name(source_list, fakeCombinedMonitorName);
 		} catch (ObjectNotFoundError&) {
 			std::cerr << "Failed to create a fake combined sink, exiting\n";
 			clean();
@@ -152,7 +143,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 				.get_sink_list()
 				.run_commands();
 	sink_list = extract<info_list<sink_infos_t>>(result);
-	fakeCombinedSink = find_sink(sink_list, "fakecombinedsink");
+	fakeCombinedSink = find_by_name(sink_list, "fakecombinedsink");
 
 	fakeLib
 		.clear_commands()
@@ -184,6 +175,23 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 	if  (OggPlayer::init(fileName, fakeCombinedSinkName) != 0)
 		return 1;
 	std::cerr << "Initialized. Playing\n";
+	
+	// Setting volume of Ogg Player
+	result = fakeLib
+				.clear_commands()
+				.get_sink_input_list()
+				.run_commands();
+	auto sink_input_list = extract<info_list<sink_input_infos_t>>(result);
+	print_sink_input_list(sink_input_list);
+	try {
+		auto fakePlayerSinkInput = find_by_name(sink_input_list, "Playing Music with Fake");
+		fakeLib
+			.clear_commands()
+			.set_sink_input_volume(fakePlayerSinkInput.index, 100.0) // Setting volume to 100%
+			.run_commands();
+	} catch (ObjectNotFoundError&) {
+		std::cerr << "[error] Couldn't found the Ogg Player, things might not work\n";
+	}
 
 	return 0;
 }
