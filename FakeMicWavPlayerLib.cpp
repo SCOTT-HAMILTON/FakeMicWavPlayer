@@ -196,15 +196,13 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 	return 0;
 }
 
-int FakeMicWavPlayer::play() {
-	if  (OggPlayer::play() != 0)
-		return 1;
-
-	// Clean Up Time
-	clean();
-
-	return 0;
+int FakeMicWavPlayer::playNonBlocking() {
+	return OggPlayer::playNonBlocking();
 }
+int FakeMicWavPlayer::cleanPlayer() {
+	return OggPlayer::clean();
+}
+
 int FakeMicWavPlayer::set_volume(double volume) {
 	if (volume < 0.0)
 		throw NegativeVolumeError();
@@ -215,9 +213,6 @@ int FakeMicWavPlayer::set_volume(double volume) {
 		.clear_commands()
 		.set_sink_volume(fakeCombinedSink.index, volume)
 		.run_commands();
-	// Clean Up Time
-	clean();
-
 	return 0;
 }
 

@@ -7,6 +7,7 @@ argparse = dependency('argparse')
 
 OggPlayer_proj = subproject('OggPlayer')
 libOggPlayer_dep = OggPlayer_proj.get_variable('libOggPlayer_dep')
+# libOggPlayer = OggPlayer_proj.get_variable('libOggPlayer')
 
 lib_inc = include_directories('include')
 lib_src = [ 'FakeMicWavPlayerLib.cpp' ]
@@ -26,3 +27,5 @@ executable('FakeMicWavPlayer', 'main.cpp', 'FakeMicWavPlayerLib.cpp',
   dependencies : [ libFakeMicWavPlayer_dep, libOggPlayer_dep, argparse ],
   install : true)
 
+install_data('pkg-config/fakemicwavplayer.pc',
+  install_dir: get_option('libdir')+'/pkgconfig')

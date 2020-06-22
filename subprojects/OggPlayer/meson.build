@@ -21,3 +21,5 @@ executable('OggPlayer', 'main.cpp',
   dependencies : [ libOggPlayer_dep, libogg, libvorbis ],
   install : true)
 
+install_data('pkg-config/oggplayer.pc',
+  install_dir: get_option('libdir')+'/pkgconfig')

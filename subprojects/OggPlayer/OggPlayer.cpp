@@ -13,15 +13,26 @@ int OggPlayer::init(const std::string& oggFilename, const std::string& sink_devi
 	};
 	if (PaPlayer::init(&playArgs) != 0)
 		return 1;
+	if (OggDecoder::init(filename.c_str(), PaPlayer::write_callback) != 0)
+		return 1;
 	return 0;
+}
+int OggPlayer::playNonBlocking()
+{
+	return OggDecoder::playNonBlocking();
 }
 
 int OggPlayer::play() {
-	decode_ogg(filename.c_str(), PaPlayer::write_callback);
+	while (playNonBlocking() == 0);
+	clean();
+	return 0;
+}
+
+int OggPlayer::clean() {
 	if (PaPlayer::finish() != 0)
 		return 1;
+	OggDecoder::clean();
 	PaPlayer::clean();
-
 	return 0;
 }
 

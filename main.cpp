@@ -74,5 +74,7 @@ int main(int argc, char *argv[]) {
 	if (FakeMicWavPlayer::set_volume(90.0) != 0)
 		return 1;
 	
-	return FakeMicWavPlayer::play();
+	while (FakeMicWavPlayer::playNonBlocking() == 0);
+	FakeMicWavPlayer::cleanPlayer();
+	FakeMicWavPlayer::clean();
 }

@@ -7,6 +7,8 @@ class OggPlayer {
 public:
 	static int init(const std::string& oggFilename, const std::string& device);
 	static int play();
+	static int playNonBlocking();
+	static int clean();
 
 private:
 	static std::string filename;

@@ -27,7 +27,8 @@ public:
 	static int init(const std::string& fileName,
 		   std::string combinedSlavesList,
 		   std::string sourceProcessBinary);
-	static int play();
+	static int playNonBlocking();
+	static int cleanPlayer();
 	static int set_volume(double volume);
 	static void clean();
 
