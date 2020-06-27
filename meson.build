@@ -3,7 +3,13 @@ project('FakeMicWavPlayer', 'cpp', default_options : ['cpp_std=c++17'])
 libfake = dependency('fake', required: true)
 libpulse = dependency('libpulse')
 libpulse_simple = dependency('libpulse-simple')
-argparse = dependency('argparse')
+
+argparse = dependency('argparse', required: get_option('USE_SYSTEM_ARGPARSE'))
+if not argparse.found()
+  cmake = import('cmake')
+  argparse_proj = cmake.subproject('argparse')
+  argparse = argparse_proj.dependency('argparse')
+endif
 
 OggPlayer_proj = subproject('OggPlayer')
 libOggPlayer_dep = OggPlayer_proj.get_variable('libOggPlayer_dep')

@@ -7,7 +7,7 @@
 
 ![Travis CI build status](https://travis-ci.org/SCOTT-HAMILTON/FakeMicWavPlayer.svg?branch=master)
 
-Fake is a pulseaudio client that can inject wav files like a microphone to any recording app on linux.
+Fake is a pulseaudio client that can inject ogg files like a microphone to any recording app on linux.
 
 # Meson Building 
   To build it, run : 
@@ -18,8 +18,8 @@ Fake is a pulseaudio client that can inject wav files like a microphone to any r
   ```
 
 # How does it work
- - Fake creates a virtual combined sink. Pulseaudio sinks are basically just the devices in which you can output sound, it can be your USB headphones, you speakers or some virtual stuff. The combined sink forwards its audio to its slave sinks. Furthermore, we connect the recording application to the monitor of this combined sink. This combination feature of pulseaudio is used to play the wav file both in the recording application and in "real hardware" sinks so that you can also hear what is played.
- - Now fake can just play the wav file to the combined sink.
+ - Fake creates a virtual combined sink. Pulseaudio sinks are basically just the devices in which you can output sound, it can be your USB headphones, you speakers or some virtual stuff. The combined sink forwards its audio to its slave sinks. Furthermore, we connect the recording application to the monitor of this combined sink. This combination feature of pulseaudio is used to play the ogg file both in the recording application and in "real hardware" sinks so that you can also hear what is played.
+ - Now fake can just play the ogg file to the combined sink.
  - To summarize :
 ![Summarized Schema](icons/schema.png "schema")
 
@@ -29,10 +29,10 @@ If you prefer using a GUI, you can use Control's for Fake GUI frontend. [Control
 	
 ## The hard way
 ```
-Usage: FakeMicWavPlayer [options] wav file process binary
+Usage: FakeMicWavPlayer [options] ogg file process binary
 
 Positional arguments:
-wav file        The wav audio file to play.
+ file        The wav audio file to play.
 process binary  The binary name of the app to send the sound to.
 
 Optional arguments:
@@ -53,7 +53,7 @@ Optional arguments:
   
    > So if I wan't to hear the wav on my sennheiser headsets and on my internal speakers, I would run : 
   
-  `./FakeMicWavPlayer -s alsa_output.pci-0000_00_1f.3.analog-stereo,alsa_output.usb-Sennheiser_Sennheiser_SC60_for_Lync_55ef416267-00.analog-stereo MyWav.wav MyRecordingAppBinaryName `
+  `./FakeMicWavPlayer -s alsa_output.pci-0000_00_1f.3.analog-stereo,alsa_output.usb-Sennheiser_Sennheiser_SC60_for_Lync_55ef416267-00.analog-stereo MyMusic.ogg MyRecordingAppBinaryName `
   
 
 ### Requirements

@@ -27,22 +27,18 @@ void sig_handler(int signo)
 
 int main(int argc, char *argv[]) {
 
-	if (signal(SIGINT, sig_handler) == SIG_ERR)
-		std::cerr << "\nCan't catch SIGINT\n";
-	if (signal(SIGUSR1, sig_handler) == SIG_ERR)
-		std::cerr << "\ncan't catch SIGUSR1\n";
-	if (signal(SIGKILL, sig_handler) == SIG_ERR)
-		std::cerr << "\ncan't catch SIGKILL\n";
-	if (signal(SIGSTOP, sig_handler) == SIG_ERR)
-		std::cerr << "\ncan't catch SIGSTOP\n";
+	signal(SIGINT, sig_handler);
+	signal(SIGUSR1, sig_handler);
+	signal(SIGKILL, sig_handler);
+	signal(SIGSTOP, sig_handler);
 
 
 	argparse::ArgumentParser program("FakeMicWavPlayer");
 
-	program.add_argument("wav file")
-		.help("The wav audio file to play.");
+	program.add_argument("<Ogg File>")
+		.help("The ogg audio file to play.");
 
-	program.add_argument("process binary")
+	program.add_argument("<Process Binary>")
 		.help("The binary name of the app to send the sound to.");
 
 	program.add_argument("-s", "--sink-list")
@@ -52,7 +48,7 @@ int main(int argc, char *argv[]) {
 				string.erase(std::remove(string.begin(), string.end(), ' '), string.end());
 				return string;
 				})
-	.help("The comma-sepatated list of sinks to play the wav file to.");
+	.help("The comma-sepatated list of sinks to play the ogg file to.");
 
 	try {
 		program.parse_args(argc, argv);
@@ -63,11 +59,11 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	auto wav_file = program.get<std::string>("wav file");
-	std::string sourceProcessBinary = program.get<std::string>("process binary");
+	auto ogg_file = program.get<std::string>("<Ogg File>");
+	std::string sourceProcessBinary = program.get<std::string>("<Process Binary>");
 	std::string combinedSlavesList = program.get<const char*>("-s");
 
-	if (FakeMicWavPlayer::init(wav_file.c_str(), combinedSlavesList,
+	if (FakeMicWavPlayer::init(ogg_file.c_str(), combinedSlavesList,
 			sourceProcessBinary) != 0)
 		return 1;
 
