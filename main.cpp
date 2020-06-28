@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
 
 	program.add_argument("<Ogg File>")
 		.help("The ogg audio file to play.");
+	program.add_argument("<Source>")
+		.help("The source name to keep recording with");
 
 	program.add_argument("<Process Binary>")
 		.help("The binary name of the app to send the sound to.");
@@ -49,7 +51,6 @@ int main(int argc, char *argv[]) {
 				return string;
 				})
 	.help("The comma-sepatated list of sinks to play the ogg file to.");
-
 	try {
 		program.parse_args(argc, argv);
 	}
@@ -60,15 +61,17 @@ int main(int argc, char *argv[]) {
 	}
 
 	auto ogg_file = program.get<std::string>("<Ogg File>");
+	auto source = program.get<std::string>("<Source>");
 	std::string sourceProcessBinary = program.get<std::string>("<Process Binary>");
 	std::string combinedSlavesList = program.get<const char*>("-s");
 
-	if (FakeMicWavPlayer::init(ogg_file.c_str(), combinedSlavesList,
+	if (FakeMicWavPlayer::init(ogg_file.c_str(), source, combinedSlavesList,
 			sourceProcessBinary) != 0)
 		return 1;
 
 	if (FakeMicWavPlayer::set_volume(90.0) != 0)
 		return 1;
+
 	
 	while (FakeMicWavPlayer::playNonBlocking() == 0);
 	FakeMicWavPlayer::cleanPlayer();

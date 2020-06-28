@@ -7,4 +7,5 @@ Name: oggplayer
 Description: The OggPlayer library
 Version: 0.0.1
 Cflags: -I${includedir}
+Requires: vorbis, ogg, libpulse-simple
 Libs: -L${libdir} -lOggPlayer

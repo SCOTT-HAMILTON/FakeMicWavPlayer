@@ -41,32 +41,73 @@ sink_infos_t FakeMicWavPlayer::fakeCombinedSink;
 
 void FakeMicWavPlayer::clean() {
 	using namespace FakeLibUtils;
-	// Looping until all fakeCombinedMonitor are deleted (up to 10 times max)
+	// Looping until all combined sink modules are deleted (up to 10 times max)
 	for (int i = 0; i < 10; ++i) {
 		auto result = fakeLib
 				.clear_commands()
 				.get_module_list()
 				.run_commands();
 		auto module_list = extract<info_list<module_infos_t>>(result);
-		module_infos_t fakeCombinedMonitorModule;
+		module_infos_t module;
 		try {
-			fakeCombinedMonitorModule = find_by_name(module_list, "module-combine-sink");
-		} catch (ObjectNotFoundError) {
+			module = find_by_name(module_list, "module-combine-sink");
+		} catch (ObjectNotFoundError&) {
 			// Good, there is no more "module-null-sink" modules loaded
 			break;
 		}
-		std::cerr << "Deleting\n";
+		std::cerr << "Deleting combined sink module\n";
 		// deleting the module
 		fakeLib
 			.clear_commands()
-			.unload_module(fakeCombinedMonitorModule.index)
+			.unload_module(module.index)
 			.run_commands();
 	}
-	/* print_module_list(module_list); */
-
+	// Looping until all null sink modules are deleted (up to 10 times max)
+	for (int i = 0; i < 10; ++i) {
+		auto result = fakeLib
+				.clear_commands()
+				.get_module_list()
+				.run_commands();
+		auto module_list = extract<info_list<module_infos_t>>(result);
+		module_infos_t module;
+		try {
+			module = find_by_name(module_list, "module-null-sink");
+		} catch (ObjectNotFoundError&) {
+			// Good, there is no more "module-null-sink" modules loaded
+			break;
+		}
+		std::cerr << "Deleting null sink module\n";
+		// deleting the module
+		fakeLib
+			.clear_commands()
+			.unload_module(module.index)
+			.run_commands();
+	}
+	// Looping until all sourceLoopbackSinkName is deleted (up to 10 times max)
+	for (int i = 0; i < 10; ++i) {
+		auto result = fakeLib
+				.clear_commands()
+				.get_module_list()
+				.run_commands();
+		auto module_list = extract<info_list<module_infos_t>>(result);
+		module_infos_t module;
+		try {
+			module = find_by_name(module_list, "module-loopback");
+		} catch (ObjectNotFoundError&) {
+			// Good, there is no more "module-null-sink" modules loaded
+			break;
+		}
+		std::cerr << "Deleting loopback module\n";
+		// deleting the module
+		fakeLib
+			.clear_commands()
+			.unload_module(module.index)
+			.run_commands();
+	}
 }
 
 int FakeMicWavPlayer::init(const std::string& fileName,
+		   std::string source,
 		   std::string combinedSlavesList,
 		   std::string sourceProcessBinary)
 {
@@ -80,18 +121,51 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 
 	sourceProcessBinary = ".Discord-wrapped";
 
-	auto result = fakeLib
-			     .get_module_list()
-			     .get_sink_list()
-			     .get_source_list()
-			     .get_source_output_list()
-			     .run_commands();
+	fakeLib.get_module_list();
+	fakeLib.get_sink_list();
+	fakeLib.get_source_list();
+	fakeLib.get_source_output_list();
+	auto result = fakeLib.run_commands();
 		
 	auto module_list = extract<info_list<module_infos_t>>(result);
 	auto sink_list = extract<info_list<sink_infos_t>>(result);
 	auto source_list = extract<info_list<source_infos_t>>(result);
 	auto source_output_list = extract<info_list<source_output_infos_t>>(result);
 	fakeLib.clear_commands();
+
+	// Check if the source loopback sink exists
+	sink_infos_t sourceLoopbackSink;
+	try {
+		sourceLoopbackSink  = find_by_name(sink_list, sourceLoopbackSinkName);
+	} catch (ObjectNotFoundError&) {
+		// Loopback sink doesn't exist, we create it
+		result = fakeLib
+			.clear_commands()
+			.load_module("module-null-sink", std::string("sink_name=")+sourceLoopbackSinkName, "The Null sink for source loopback")
+			.run_commands();
+		auto args = std::string("source=")+source+std::string(" sink=")+sourceLoopbackSinkName;
+		std::cerr << "[log] module-loopback args : `" << args << "`\n";
+		result = fakeLib
+					.clear_commands()
+					.load_module("module-loopback", args, "The Source Loopback")
+					.run_commands();
+		result = fakeLib
+					.clear_commands()
+					.get_sink_list()
+					.run_commands();
+		sink_list = extract<info_list<sink_infos_t>>(result);
+		print_sink_list(sink_list);
+		try {
+			sourceLoopbackSink  = find_by_name(sink_list, sourceLoopbackSinkName);
+		} catch (ObjectNotFoundError&) {
+			std::cerr << "[error] Couldn't create the source loopback sink, exitting\n";
+			// Still doesn't exist, exitting
+			clean();
+			return 1;
+		}
+	}
+
+	std::cerr << "[log] Source loop back sink found at index : " << sourceLoopbackSink.index << '\n';
 
 	std::cerr << "source process binary : " << sourceProcessBinary << '\n';
 
@@ -111,6 +185,8 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 	} catch (ObjectNotFoundError&){
 		// Fake Combined Monitor doesn't yet exist, we need to create it
 		std::cerr << "Creating fakeCombinedMonitor...\n";
+		std::cerr << "Args for fake Combined sink : " << combinedSlavesList << '\n';
+		combinedSlavesList = std::string(sourceLoopbackSinkName)+','+combinedSlavesList;
 		std::cerr << "Args for fake Combined sink : " << combinedSlavesList << '\n';
 		fakeLib.clear_commands();
 		auto result = fakeLib
@@ -133,7 +209,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		}
 	}
 
-	std::cerr << "Fake Combined Monitor Index : " << fakeCombinedMonitor.index << '\n';
+	std::cerr << "Source LoopBack Sink Index" << sourceLoopbackSink.index << '\n';
 
 	// At this point the fake monitors are setup
 	
@@ -153,7 +229,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 	// Move the found source output port to the fake combined monitor
 	result = fakeLib
 		.clear_commands()
-		.move_source_output_port(fakeCombinedMonitor.index, process_source_output.index)
+		.move_source_output_port(sourceLoopbackSink.index, process_source_output.index)
 		.run_commands();
 	move_source_output_port_t move_source_output_port_result;
 	try {
@@ -168,7 +244,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		clean();
 		return 1;
 	}
-	std::cerr << "Successfully moved the source output of " << sourceProcessBinary << " to fake combined sink\n";
+	std::cerr << "Successfully moved the source output of " << sourceProcessBinary << " to the null sink\n";
 
 	// Now we need to play
 	std::cerr << "Initializing...\n";

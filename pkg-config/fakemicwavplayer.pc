@@ -7,4 +7,6 @@ Name: fakemicwavplayer
 Description: The FakeMicWavPlayer library
 Version: 0.0.1
 Cflags: -I${includedir}
+Requires: fake, ogg, vorbis
+Requires.private: oggplayer
 Libs: -L${libdir} -lFakeMicWavPlayer

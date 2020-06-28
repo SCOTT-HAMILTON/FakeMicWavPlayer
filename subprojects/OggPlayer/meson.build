@@ -6,7 +6,7 @@ libpulse_simple = dependency('libpulse-simple')
 
 lib_inc = include_directories('include')
 lib_src = [ 'OggPlayer.cpp', 'ogg.cpp', 'pa_player.cpp' ]
-libOggPlayer = static_library('OggPlayer', lib_src, 
+libOggPlayer = shared_library('OggPlayer', lib_src, 
   include_directories : lib_inc,
   dependencies : [ libogg, libvorbis, libpulse_simple ], 
   install : true)
@@ -23,3 +23,5 @@ executable('OggPlayer', 'main.cpp',
 
 install_data('pkg-config/oggplayer.pc',
   install_dir: get_option('libdir')+'/pkgconfig')
+install_data('pkg-config/oggplayer.pc',
+  install_dir: get_option('datadir')+'/pkgconfig')

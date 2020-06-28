@@ -25,8 +25,9 @@ class FakeMicWavPlayer {
 
 public:
 	static int init(const std::string& fileName,
-		   std::string combinedSlavesList,
-		   std::string sourceProcessBinary);
+			std::string source,
+			std::string combinedSlavesList,
+			std::string sourceProcessBinary);
 	static int playNonBlocking();
 	static int cleanPlayer();
 	static int set_volume(double volume);
