@@ -69,9 +69,11 @@ int main(int argc, char *argv[]) {
 			sourceProcessBinary) != 0)
 		return 1;
 
-	if (FakeMicWavPlayer::set_volume(90.0) != 0)
+	if (FakeMicWavPlayer::set_source_volume(90.0) != 0)
 		return 1;
 
+	if (FakeMicWavPlayer::set_user_volume(40.0) != 0)
+		return 1;
 	
 	while (FakeMicWavPlayer::playNonBlocking() == 0);
 	FakeMicWavPlayer::cleanPlayer();
