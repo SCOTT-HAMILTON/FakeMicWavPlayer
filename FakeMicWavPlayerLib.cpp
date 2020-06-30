@@ -111,7 +111,6 @@ static auto get_info_from_load_module_and_check(
 			decltype(std::declval<FakeLib>().run_commands())()
 		> fetch_info_list_func) {
 	using namespace FakeLibUtils;
-	auto& fakeLib = FakeMicWavPlayer::fakeLib;
 	auto result = fetch_info_list_func();
 	auto list = extract<info_list<user_type>>(result);
 	user_type info;

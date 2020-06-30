@@ -5,14 +5,13 @@
 #include <string>
 #include <exception>
 
-static const char *defaultSourceProcessBinary = "Discord";
-static const char *fakeCombinedSinkName = "fakecombinedsink";
-static const char *sourceLoopbackSinkName = "sourceLoopbackSink";
-static const char *userVolumeControlSinkName = "userVolumeControlSink";
-static const char *sourceLoopBackMixerSinkName = "sourceLoopBackMixerSink";
-static const char *sourceLoopBackMixerMonitorName = "sourceLoopBackMixerSink.monitor";
-static const char *defaultCombinedSlavesList =
-    "alsa_output.pci-0000_00_1f.3.analog-stereo";
+static const char* defaultSourceProcessBinary 		__attribute__((unused))		= "Discord";
+static const char* fakeCombinedSinkName 			__attribute__((unused))		= "fakecombinedsink";
+static const char* sourceLoopbackSinkName 			__attribute__((unused))		= "sourceLoopbackSink";
+static const char* userVolumeControlSinkName 		__attribute__((unused))		= "userVolumeControlSink";
+static const char* sourceLoopBackMixerSinkName 		__attribute__((unused))		= "sourceLoopBackMixerSink";
+static const char* sourceLoopBackMixerMonitorName 	__attribute__((unused))		= "sourceLoopBackMixerSink.monitor";
+static const char* defaultCombinedSlavesList 		__attribute__((unused))		= "alsa_output.pci-0000_00_1f.3.analog-stereo";
 
 struct NegativeVolumeError : public std::exception
 {

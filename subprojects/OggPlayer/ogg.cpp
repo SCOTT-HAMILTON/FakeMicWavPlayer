@@ -206,7 +206,6 @@ int OggDecoder::playNonBlocking()
 
 					while((samples=vorbis_synthesis_pcmout(&vd,&pcm))>0){
 						int j;
-						int clipflag=0;
 						int bout=(samples<convsize?samples:convsize);
 
 						/* convert floats to 16 bit signed ints (host order) and
@@ -219,21 +218,14 @@ int OggDecoder::playNonBlocking()
 								/* might as well guard against clipping */
 								if(val>32767){
 									val=32767;
-									clipflag=1;
 								}
 								if(val<-32768){
 									val=-32768;
-									clipflag=1;
 								}
 								*ptr=val;
 								ptr+=vi.channels;
 							}
 						}
-
-/* 									if(clipflag) */
-/* 										fprintf(stderr,"Clipping in frame %ld\n",(long)(vd.sequence)); */
-
-
 						/* fwrite(convbuffer,2*vi.channels,bout,stdout); */
 						if (write_callback(convbuffer,2*vi.channels,bout) != 0) {
 							fclose(musicFile);
