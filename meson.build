@@ -35,3 +35,5 @@ install_data('pkg-config/fakemicwavplayer.pc',
   install_dir: get_option('libdir')+'/pkgconfig')
 install_data('pkg-config/fakemicwavplayer.pc',
   install_dir: get_option('datadir')+'/pkgconfig')
+install_data('docs/fakemicwavplayer.1',
+  install_dir: get_option('datadir')+'/docs/')
