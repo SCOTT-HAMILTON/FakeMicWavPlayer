@@ -35,14 +35,18 @@ int main(int argc, char *argv[]) {
 
 	argparse::ArgumentParser program("FakeMicWavPlayer");
 
-	program.add_argument("<Ogg File>")
-		.help("The ogg audio file to play.");
 	program.add_argument("<Source>")
 		.help("The source name to keep recording with");
 
 	program.add_argument("<Process Binary>")
 		.help("The binary name of the app to send the sound to.");
 
+	program.add_argument("-f", "--ogg-file")
+		.default_value("")
+		.help("The ogg audio file to play.");
+	program.add_argument("-a", "--application")
+		.default_value("")
+		.help("The application playing the sound to send");
 	program.add_argument("-s", "--sink-list")
 		.default_value("default")
 		.action([](const std::string& str){
@@ -59,23 +63,46 @@ int main(int argc, char *argv[]) {
 		std::cout << program;
 		return 1;
 	}
-
-	auto ogg_file = program.get<std::string>("<Ogg File>");
+	
+	std::string ogg_file, application_name;
+	try {
+		ogg_file = program.get<std::string>("-f");
+	} catch (std::bad_any_cast&){}
+	try {
+		application_name = program.get<std::string>("-a");
+	} catch (std::bad_any_cast&){}
 	auto source = program.get<std::string>("<Source>");
 	std::string sourceProcessBinary = program.get<std::string>("<Process Binary>");
 	std::string combinedSlavesList = program.get<const char*>("-s");
-
-	if (FakeMicWavPlayer::init(ogg_file.c_str(), source, combinedSlavesList,
-			sourceProcessBinary) != 0)
-		return 1;
-
-	if (FakeMicWavPlayer::set_source_volume(90.0) != 0)
-		return 1;
-
-	if (FakeMicWavPlayer::set_user_volume(40.0) != 0)
-		return 1;
-	
-	while (FakeMicWavPlayer::playNonBlocking() == 0);
-	FakeMicWavPlayer::cleanPlayer();
 	FakeMicWavPlayer::clean();
+	if (ogg_file == "" && application_name == "") {
+		std::cerr << "[error] You need to provide either an ogg file to play or a application already playing sound.";
+		return 1;
+	}
+	if (ogg_file != "" && application_name != "") {
+		std::cerr << "[error] You can't stream both from an ogg file and an already playing app.";
+		return 1;
+	}
+	if (application_name != "") {
+		if (FakeMicWavPlayer::initWithSinkInput(application_name, source, combinedSlavesList,
+				sourceProcessBinary) != 0)
+			return 1;
+		return 0;	
+	}
+	if (ogg_file != "") {
+		if (FakeMicWavPlayer::initWithAudioFile(ogg_file.c_str(), source, combinedSlavesList,
+				sourceProcessBinary) != 0)
+			return 1;
+
+		if (FakeMicWavPlayer::set_source_volume(90.0) != 0)
+			return 1;
+
+		if (FakeMicWavPlayer::set_user_volume(40.0) != 0)
+			return 1;
+		
+		while (FakeMicWavPlayer::playNonBlocking() == 0);
+		FakeMicWavPlayer::cleanPlayer();
+	}
+	FakeMicWavPlayer::clean();
+	return 0;
 }

@@ -37,7 +37,11 @@ struct CantLoadModuleError : public std::exception
 class FakeMicWavPlayer {
 
 public:
-	static int init(const std::string& fileName,
+	static int initWithAudioFile(const std::string& fileName,
+			std::string source,
+			std::string combinedSlavesList,
+			std::string sourceProcessBinary);
+	static int initWithSinkInput(const std::string& sinkInputName,
 			std::string source,
 			std::string combinedSlavesList,
 			std::string sourceProcessBinary);
@@ -53,6 +57,11 @@ private:
 	static sink_infos_t fakeCombinedSink;
 	static sink_infos_t sourceLoopbackSink;
 	static sink_infos_t userVolumeControlSink;
+
+	static int init(
+			std::string source,
+			std::string combinedSlavesList,
+			std::string sourceProcessBinary);
 };
 
 #endif //FAKE_MIC_WAV_PLAYER_LIB_H

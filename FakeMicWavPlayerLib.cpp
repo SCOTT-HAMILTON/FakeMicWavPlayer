@@ -81,11 +81,20 @@ void FakeMicWavPlayer::clean() {
 
 static bool load_module(
 		const std::string& module,
-		const std::string& args,
-		const std::string& description
+		std::string args,
+		const std::string& description,
+		std::string name = ""
 	)
 {
-	std::cerr << "[log] Load module args for " << description << " : `" << args << "`\n";
+	if (module == "module-null-sink"
+		|| module == "module-combine-sink"
+		) {
+		auto dev_desc = description;
+		std::replace(std::begin(dev_desc), std::end(dev_desc), ' ', '_');
+		std::replace(std::begin(dev_desc), std::end(dev_desc), '.', '-');
+		args += " sink_properties=device.description="+dev_desc;
+	}
+	std::cerr << "[log] Load " << module << " args for " << description << " : `" << args << "`\n";
 	using namespace FakeLibUtils;
 	auto result = FakeMicWavPlayer::fakeLib
 		.clear_commands()
@@ -121,7 +130,9 @@ static auto get_info_from_load_module_and_check(
 		if (load_module(
 					module,
 					args,
-					description)) {
+					description,
+					nameToCheck
+					)) {
 			throw CantLoadModuleError();
 		}
 		result = fetch_info_list_func();
@@ -175,7 +186,7 @@ static auto get_source_from_load_module_and_check(
 	);
 }
 
-int FakeMicWavPlayer::init(const std::string& fileName,
+int FakeMicWavPlayer::init(
 		   std::string source,
 		   std::string combinedSlavesList,
 		   std::string sourceProcessBinary)
@@ -196,7 +207,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		fakeLib.get_source_output_list();
 		auto result = fakeLib.run_commands();
 		source_output_list = extract<info_list<source_output_infos_t>>(result);
-	 	process_source_output = find_source_output(source_output_list, sourceProcessBinary);
+	 	process_source_output = find_by_process_binary(source_output_list, sourceProcessBinary);
 	} catch (ObjectNotFoundError&){
 		print_source_output_list(source_output_list);
 		std::cerr << "[error] Source output for `" << sourceProcessBinary << "` not found, exiting\n";
@@ -265,7 +276,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 	// Creating fake combined sink if doesn't exist
 	try {
 		auto args = std::string("sink_name=")+fakeCombinedSinkName+std::string(" slaves=")+sourceLoopbackSinkName+std::string(",")+userVolumeControlSinkName;
-		get_sink_from_load_module_and_check(
+		fakeCombinedSink = get_sink_from_load_module_and_check(
 			"module-combine-sink",
 			args,
 			"The fake combined sink module",
@@ -292,7 +303,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		auto sink = find_by_name(sink_list, fakeCombinedSinkName);
 		fakeLib
 			.clear_commands()
-			.set_sink_volume(sink.index, 90.0)
+			.set_sink_volume(sink.index, 100.0)
 			.run_commands();
 	}
 	// Setting the Source Loopback Sink volume to 100%
@@ -305,7 +316,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		auto sink = find_by_name(sink_list, sourceLoopbackSinkName);
 		fakeLib
 			.clear_commands()
-			.set_sink_volume(sink.index, 90.0)
+			.set_sink_volume(sink.index, 100.0)
 			.run_commands();
 	}
 	// Setting the Source Loopback Mixer Sink volume to 100%
@@ -318,10 +329,10 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		auto sink = find_by_name(sink_list, sourceLoopBackMixerSinkName);
 		fakeLib
 			.clear_commands()
-			.set_sink_volume(sink.index, 90.0)
+			.set_sink_volume(sink.index, 100.0)
 			.run_commands();
 	}
-	// Setting the User Volume Control Sink volume to 100%
+	// Setting the User Volume Control Sink volume to 9%
 	{
 		auto result = fakeLib
 					.clear_commands()
@@ -331,7 +342,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 		auto sink = find_by_name(sink_list, userVolumeControlSinkName);
 		fakeLib
 			.clear_commands()
-			.set_sink_volume(sink.index, 90.0)
+			.set_sink_volume(sink.index, 0.1)
 			.run_commands();
 	}
 
@@ -339,7 +350,7 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 	{
 		auto result = fakeLib
 		.clear_commands()
-		.move_source_output_port(sourceLoopBackMixerMonitor.index, process_source_output.index)
+		.move_source_output_port(process_source_output.index, sourceLoopBackMixerMonitor.index)
 		.run_commands();
 		move_source_output_port_t move_source_output_port_result;
 		try {
@@ -359,6 +370,19 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 			return 1;
 		}
 		std::cerr << "[log] Successfully moved the source output of " << sourceProcessBinary << " to " << sourceLoopBackMixerMonitor.index << '\n';
+	}
+	return 0;
+}
+
+int FakeMicWavPlayer::initWithAudioFile(const std::string& fileName,
+										std::string source,
+										std::string combinedSlavesList,
+										std::string sourceProcessBinary)
+{
+	using namespace FakeLibUtils;
+	// Init
+	if (init(source, combinedSlavesList, sourceProcessBinary) != 0) {
+		return 1;
 	}
 
 	// Now we need to play
@@ -384,6 +408,77 @@ int FakeMicWavPlayer::init(const std::string& fileName,
 			std::cerr << "[error] Couldn't found the Ogg Player, things might not work\n";
 		}
 	}
+
+	return 0;
+}
+int FakeMicWavPlayer::initWithSinkInput(const std::string& sinkInputName,
+										std::string source,
+										std::string combinedSlavesList,
+										std::string sourceProcessBinary)
+{
+	using namespace FakeLibUtils;
+
+	sink_input_infos_t sink_input;
+	{
+		auto result = fakeLib
+						.clear_commands()
+						.get_sink_input_list()
+						.run_commands();
+		auto sink_input_list = extract<info_list<sink_input_infos_t>>(result);
+		// Finding sink input
+		try {
+			sink_input = find_by_process_binary(sink_input_list, sinkInputName);
+		} catch (ObjectNotFoundError&) {
+			std::cerr << "[error] Sink Input `" << sinkInputName << "` not found, exitting\n";
+			return 1;
+		}
+	}
+	std::cerr << "[log] Sink Input `" << sinkInputName << "` Index : " << sink_input.index << '\n';
+
+	// Init
+	if (init(source, combinedSlavesList, sourceProcessBinary) != 0) {
+		return 1;
+	}
+
+	// Move application audio stream to the fake combined sink
+	{
+		auto result = fakeLib
+						.clear_commands()
+						.move_sink_input_port(sink_input.index, fakeCombinedSink.index)
+						.run_commands();
+		try {
+			auto move_result = extract<move_sink_input_port_t>(result);
+			if (move_result.success != 0) {
+				throw ObjectNotFoundError();
+			}
+		} catch (ObjectNotFoundError&) {
+			std::cerr << "[error] couldn't move `" << sinkInputName << "` to fakeCombinedSink, exitting\n";
+			clean();
+			return 1;
+		}
+	}
+	
+	{
+		auto result = fakeLib
+						.clear_commands()
+						.get_sink_input_list()
+						.run_commands();
+		auto sink_input_list = extract<info_list<sink_input_infos_t>>(result);
+		sink_input_infos_t sink_input;
+		try {
+			sink_input = find_by_process_binary(sink_input_list, sinkInputName);
+		} catch (ObjectNotFoundError&) {
+			// Should not happen because it has already been found above...
+			std::cerr << "[error] Sink Input `" << sinkInputName << "` not found, exitting\n";
+			return 1;
+		}
+		if (sink_input.sink != fakeCombinedSink.index) {
+			std::cerr << "[error] Failed to move Sink Input `" << sinkInputName << "` of Index: " << sink_input.index << " to Fake Combined Sink of Index: " << fakeCombinedSink.index << '\n';
+			print_sink_input_list(sink_input_list);
+			return 1;
+		}
+	}
+	std::cerr << "[log] Successfully moved the application `" << sinkInputName << " to the fake combined sink" << '\n';
 
 	return 0;
 }
@@ -419,5 +514,3 @@ int FakeMicWavPlayer::set_user_volume(double volume) {
 		.run_commands();
 	return 0;
 }
-
-
