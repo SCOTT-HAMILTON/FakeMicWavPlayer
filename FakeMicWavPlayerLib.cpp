@@ -355,8 +355,7 @@ int FakeMicWavPlayer::init(
 		move_source_output_port_t move_source_output_port_result;
 		try {
 			move_source_output_port_result = extract<move_source_output_port_t>(result);
-			if (move_source_output_port_result.success != 0) {
-
+			if (move_source_output_port_result.success == 0) {
 				throw ObjectNotFoundError();
 			}
 		} catch (ObjectNotFoundError&) {
@@ -364,7 +363,7 @@ int FakeMicWavPlayer::init(
 			clean();
 			return 1;
 		}
-		if (move_source_output_port_result.success != 0) {
+		if (move_source_output_port_result.success == 0) {
 			std::cerr << "[error] couldn't move process source output port to monitor source at " << sourceLoopBackMixerMonitor.index << ", exiting\n";
 			clean();
 			return 1;
@@ -448,7 +447,7 @@ int FakeMicWavPlayer::initWithSinkInput(const std::string& sinkInputName,
 						.run_commands();
 		try {
 			auto move_result = extract<move_sink_input_port_t>(result);
-			if (move_result.success != 0) {
+			if (move_result.success == 0) {
 				throw ObjectNotFoundError();
 			}
 		} catch (ObjectNotFoundError&) {
