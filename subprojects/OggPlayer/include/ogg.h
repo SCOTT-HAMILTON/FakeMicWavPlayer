@@ -1,9 +1,10 @@
 #ifndef OGG_H
 #define OGG_H
 
+#include <array>
+#include <cstdio>
 #include <functional>
 #include <vorbis/codec.h>
-#include <array>
 
 using write_callback_t = std::function<int(const void * ptr, size_t size, size_t count)>;
 extern void _VDBG_dump(void);
