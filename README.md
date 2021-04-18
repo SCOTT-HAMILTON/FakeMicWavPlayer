@@ -4,12 +4,11 @@
 
 ![Powered by Pulseaudio](icons/powered_by_pulseaudio.png)
 
-
 ![Travis CI build status](https://travis-ci.org/SCOTT-HAMILTON/FakeMicWavPlayer.svg?branch=master)
 
 Fake is a pulseaudio client that can inject ogg files like a microphone to any recording app on linux.
 
-# Meson Building 
+## Meson Building 
   To build it, run : 
   ```sh
   meson setup build
@@ -17,7 +16,7 @@ Fake is a pulseaudio client that can inject ogg files like a microphone to any r
   ninja -C install
   ```
 
-# How does it work
+## How does it work
  Fake creates a pipeline structure of virtual sink, virtual combined sinks and loopback module to perform
  its magical work. This structure allows separate volume control of the played audio file both to
  the recording app and to your personnal headphones/headsets/... It also allows you to be kept recorded
@@ -29,12 +28,12 @@ Fake is a pulseaudio client that can inject ogg files like a microphone to any r
  - If the structure of the software interests you, here is a summarized view of it :
 ![Summarized Schema](icons/schema.png "schema")
 
-# Usage
-## The GUI Way
+## Usage
+### The GUI Way
 If you prefer using a GUI, you can use Control's for Fake GUI frontend. [Control's for Fake link](https://github.com/SCOTT-HAMILTON/ControlsForFake) .
 	
-## The hard way
-```
+### The hard way
+```shell_session
 Usage: FakeMicWavPlayer [options] <Ogg File> <Source> <Process Binary>
 
 Positional arguments:
@@ -74,41 +73,33 @@ Optional arguments:
   `./FakeMicWavPlayer -s alsa_output.pci-0000_00_1f.3.analog-stereo,alsa_output.usb-Sennheiser_Sennheiser_SC60_for_Lync_55ef416267-00.analog-stereo MyMusic.ogg <source> MyRecordingAppBinaryName `
   
 
-### Requirements
-
+## Requirements
 Fake requires : 
  - libpulse  libpulse-simple: 
  - libvorbis libogg
  - [FakeLib](https://github.com/SCOTT-HAMILTON/FakeLib)
  - [argparse](https://github.com/p-ranav/argparse)
 
-
-### Help
-
+## Help
 Fake is just a little project, but feel free to fork, change, extend or correct the code.
 
-# Warning
+## Warning
+**Fake Mic Wav Player unloads all module-null-sink, module-combined-sink and module-combine-sink in existence as a cleanup precaution. This shouldn't bother most of the users except those who hack with pulseaudio.**
 
-** Fake Mic Wav Player unloads all module-null-sink, module-combined-sink and module-combine-sink in existence as a cleanup precaution. This shouldn't bother most of the users except those who hack with pulseaudio.**
-
-License
-----
+## License
 Fake is delivered as it is under the well known MIT License
 
-
 **References that helped**
- - [pulseaudio IRC] : <#pulseaudio>
+ - [pulseaudio irc] : <#pulseaudio>
  - [pulseaudio under the hood] : <https://gavv.github.io/articles/pulseaudio-under-the-hood/>
  - [pulseaudio documentation] : <https://freedesktop.org/software/pulseaudio/doxygen/>
- - [pulseaudio introspect API interface] :
+ - [pulseaudio introspect api interface] :
    <https://freedesktop.org/software/pulseaudio/doxygen/introspect_8h.html>
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
-
-
-   [pulseaudio IRC]: <#pulseaudio>
+   [pulseaudio irc]: <#pulseaudio>
    [pulseaudio under the hood]: <https://gavv.github.io/articles/pulseaudio-under-the-hood/>
    [pulseaudio documentation]: <https://freedesktop.org/software/pulseaudio/doxygen/>
-   [pulseaudio introspect API interface]:
+   [pulseaudio introspect api interface]:
    <https://freedesktop.org/software/pulseaudio/doxygen/introspect_8h.html>
