@@ -72,7 +72,6 @@ Optional arguments:
   
   `./FakeMicWavPlayer -s alsa_output.pci-0000_00_1f.3.analog-stereo,alsa_output.usb-Sennheiser_Sennheiser_SC60_for_Lync_55ef416267-00.analog-stereo MyMusic.ogg <source> MyRecordingAppBinaryName `
   
-
 ## Requirements
 Fake requires : 
  - libpulse  libpulse-simple: 
@@ -90,9 +89,12 @@ Fake is just a little project, but feel free to fork, change, extend or correct 
 Fake is delivered as it is under the well known MIT License
 
 **References that helped**
- - [pulseaudio irc] : <#pulseaudio>
- - [pulseaudio under the hood] : <https://gavv.github.io/articles/pulseaudio-under-the-hood/>
- - [pulseaudio documentation] : <https://freedesktop.org/software/pulseaudio/doxygen/>
+ - [pulseaudio irc]: <#pulseaudio>
+
+ - [pulseaudio under the hood]: <https://gavv.github.io/articles/pulseaudio-under-the-hood/>
+
+ - [pulseaudio documentation]: <https://freedesktop.org/software/pulseaudio/doxygen/>
+
  - [pulseaudio introspect api interface] :
    <https://freedesktop.org/software/pulseaudio/doxygen/introspect_8h.html>
 
