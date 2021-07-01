@@ -1,8 +1,8 @@
 #include "FakeMicWavPlayerLib.h"
-#include "FakeLib.h"
-#include "CallBacks.h"
-#include "FakeLibImplementation.h"
-#include "FakeLibUtils.hpp"
+#include "FakeLib/FakeLib.h"
+#include "FakeLib/CallBacks.h"
+#include "FakeLib/FakeLibImplementation.h"
+#include "FakeLib/FakeLibUtils.hpp"
 #include "OggPlayer.h"
 
 #include <utility>

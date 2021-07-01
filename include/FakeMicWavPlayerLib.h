@@ -1,7 +1,7 @@
 #ifndef FAKE_MIC_WAV_PLAYER_LIB_H
 #define FAKE_MIC_WAV_PLAYER_LIB_H
 
-#include <FakeLib.h>
+#include <FakeLib/FakeLib.h>
 #include <string>
 #include <exception>
 

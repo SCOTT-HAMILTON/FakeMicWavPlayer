@@ -25,8 +25,8 @@ libFakeMicWavPlayer_dep = declare_dependency(
   link_with: libFakeMicWavPlayer,
   include_directories: lib_inc)
 
-install_headers('include/FakeMicWavPlayerLib.h' )
-
+install_headers('include/FakeMicWavPlayerLib.h',
+ install_dir: 'include/FakeMicWavPlayer')
 executable('FakeMicWavPlayer', 'main.cpp', 'FakeMicWavPlayerLib.cpp',
   dependencies : [ libfake, libFakeMicWavPlayer_dep, libOggPlayer_dep, argparse ],
   install : true)
@@ -36,4 +36,4 @@ install_data('pkg-config/fakemicwavplayer.pc',
 install_data('pkg-config/fakemicwavplayer.pc',
   install_dir: get_option('datadir')+'/pkgconfig')
 install_data('docs/FakeMicWavPlayer.1',
-  install_dir: get_option('datadir')+'/man/')
+  install_dir: get_option('datadir')+'/man/man1')
